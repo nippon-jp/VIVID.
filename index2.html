@@ -3,483 +3,863 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DinoGen AI - 2D to 3D AR Service</title>
-
-    <!-- model-viewer: defer で確実に読み込む -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- QR Code: より安定した CDN に変更 -->
+    <title>DinoGen AI - 2D to 3D Reconstruction</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
             integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSRX1pGnBdG/Nfr9nJZBbzPBrT5oCGU+/GBw=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-    <!-- フォント: Inter を追加 -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         :root {
-            --primary: #00f2ff;
-            --bg-dark: #05070a;
-            --panel-bg: rgba(10, 15, 25, 0.8);
+            --cyan:    #00f2ff;
+            --cyan-dim:#005f66;
+            --bg:      #04060a;
+            --panel:   rgba(8, 14, 24, 0.88);
+            --border:  rgba(0, 242, 255, 0.18);
         }
 
         body {
-            background-color: var(--bg-dark);
+            background: var(--bg);
             background-image:
-                radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
-                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 100%, 100% 4px, 100% 100%;
-            color: #e0e0e0;
-            font-family: 'Inter', sans-serif;
+                radial-gradient(ellipse at 60% 0%,   rgba(0,242,255,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 10% 80%,  rgba(100,0,255,0.05) 0%, transparent 45%);
+            color: #d0dde8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .font-cyber { font-family: 'Orbitron', sans-serif; }
-        .font-mono  { font-family: 'JetBrains Mono', monospace; }
-
-        .glass {
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        /* ── LAYOUT ── */
+        .app-wrap {
+            max-width: 1200px; margin: 0 auto;
+            padding: 28px 20px 48px;
+            display: flex; flex-direction: column; gap: 24px;
         }
 
-        @keyframes pulse-cyan {
-            0%, 100% { box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
-            50%       { box-shadow: 0 0 25px rgba(0, 242, 255, 0.5); }
+        /* ── HEADER ── */
+        header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 20px;
         }
-        .active-glow { animation: pulse-cyan 2s infinite; }
+        .logo h1 { font-family:'Orbitron',sans-serif; font-size:clamp(22px,4vw,32px); font-weight:900; color:var(--cyan); letter-spacing:-.02em; }
+        .logo p  { font-size:9px; letter-spacing:.35em; color:var(--cyan-dim); text-transform:uppercase; margin-top:4px; }
+        .status-dot { display:flex; align-items:center; gap:10px; font-size:10px; color:#4ade80; font-family:'Orbitron',sans-serif; }
+        .dot { width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 8px #4ade80; animation:blink 2s ease-in-out infinite; }
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
 
-        /* スキャンバー: display:none → visibility で制御し、アニメーション確実発火 */
-        @keyframes scan-loop {
-            0%   { top: 0%;   opacity: 0; }
-            10%  { opacity: 1; }
-            90%  { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
+        /* ── GRID ── */
+        .main-grid { display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start; }
+        @media(max-width:860px){ .main-grid{grid-template-columns:1fr;} }
+
+        /* ── PANELS ── */
+        .panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; backdrop-filter:blur(16px); overflow:hidden; }
+        .panel-head {
+            padding:13px 18px; border-bottom:1px solid var(--border);
+            font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700;
+            letter-spacing:.2em; color:var(--cyan); text-transform:uppercase;
+            display:flex; align-items:center; gap:8px;
         }
-        .scanning-bar {
-            width: 100%;
-            height: 4px;
-            background: var(--primary);
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 20;
-            box-shadow: 0 0 20px var(--primary);
+        .step-num { background:rgba(0,242,255,.1); border:1px solid var(--border); border-radius:4px; padding:1px 7px; font-size:9px; }
+        .panel-body { padding:18px; }
+
+        /* ── DROP ZONE ── */
+        #drop-zone {
+            border:2px dashed var(--cyan-dim); border-radius:10px; padding:30px 16px;
+            text-align:center; cursor:pointer; transition:border-color .2s, background .2s;
         }
-        .scanning-bar.active {
-            animation: scan-loop 3s ease-in-out infinite;
+        #drop-zone:hover, #drop-zone.drag-over { border-color:var(--cyan); background:rgba(0,242,255,.04); }
+        #drop-zone svg { color:var(--cyan-dim); transition:color .2s; display:block; margin:0 auto 10px; }
+        #drop-zone:hover svg { color:var(--cyan); }
+        #drop-zone strong { font-size:11px; color:#8faab8; display:block; margin-bottom:6px; }
+        #drop-zone p { font-size:10px; color:#6b8499; }
+        #file-input { display:none; }
+
+        #preview-wrap { display:none; margin-top:14px; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
+        #preview-wrap img { width:100%; display:block; opacity:.8; }
+        .clear-btn {
+            position:absolute; top:6px; right:6px;
+            width:22px; height:22px; border-radius:50%;
+            background:rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.2);
+            color:#fff; font-size:12px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; transition:background .2s;
+        }
+        .clear-btn:hover { background:rgba(255,50,50,.6); }
+
+        /* ── SLIDERS ── */
+        .ctrl-row { margin-bottom:14px; }
+        .ctrl-label { font-size:9px; color:#4a6070; text-transform:uppercase; letter-spacing:.12em; margin-bottom:6px; }
+        .slider-wrap { display:flex; align-items:center; gap:10px; }
+        input[type=range] {
+            flex:1; -webkit-appearance:none; height:3px;
+            background: linear-gradient(to right, var(--cyan) 0%, var(--cyan) var(--pct,50%), #1a2a35 var(--pct,50%));
+            border-radius:2px; outline:none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance:none; width:14px; height:14px;
+            border-radius:50%; background:var(--cyan); box-shadow:0 0 8px rgba(0,242,255,.6); cursor:pointer;
+        }
+        .slider-val { font-size:10px; color:var(--cyan); min-width:28px; text-align:right; }
+
+        /* ── PROCESS BTN ── */
+        #btn-process {
+            width:100%; margin-top:4px; padding:13px;
+            background:linear-gradient(135deg,#005f6e,#003040);
+            border:1px solid var(--cyan); border-radius:8px;
+            font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; letter-spacing:.15em;
+            color:var(--cyan); cursor:pointer; transition:all .2s; text-transform:uppercase;
+        }
+        #btn-process:hover:not(:disabled) { background:linear-gradient(135deg,#00b8d4,#007090); color:#000; box-shadow:0 0 24px rgba(0,242,255,.4); }
+        #btn-process:disabled { opacity:.3; cursor:not-allowed; }
+
+        /* ── LOGS ── */
+        #log-scroll { height:150px; overflow-y:auto; padding:12px 16px; font-size:10px; line-height:1.8; }
+        #log-scroll::-webkit-scrollbar { width:3px; }
+        #log-scroll::-webkit-scrollbar-thumb { background:var(--cyan-dim); border-radius:2px; }
+        .log-ok   { color:#00c8a0; }
+        .log-info { color:#3a7a90; }
+        .log-err  { color:#f87171; }
+
+        /* ── VIEWPORT ── */
+        #viewport-wrap {
+            position:relative; border-radius:14px; overflow:hidden;
+            border:1px solid var(--border); background:#020508; height:520px;
+        }
+        #three-canvas { width:100%!important; height:100%!important; display:block; }
+        #viewport-wrap::before {
+            content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+            background:
+                repeating-linear-gradient(0deg,  transparent,transparent 39px,rgba(0,242,255,.03) 40px),
+                repeating-linear-gradient(90deg, transparent,transparent 39px,rgba(0,242,255,.03) 40px);
         }
 
-        model-viewer {
-            width: 100%;
-            height: 100%;
-            --poster-color: transparent;
-        }
+        /* scan bar */
+        @keyframes scan { 0%{top:-4px;opacity:0;} 8%{opacity:1;} 92%{opacity:1;} 100%{top:100%;opacity:0;} }
+        #scan-bar { display:none; position:absolute; left:0; width:100%; height:3px; z-index:5; background:linear-gradient(to bottom,transparent,var(--cyan),transparent); box-shadow:0 0 12px var(--cyan); }
+        #scan-bar.active { display:block; animation:scan 2.5s linear infinite; }
 
-        /* QR コードの img が中央に揃うよう保証 */
-        #qrcode img,
-        #qrcode canvas {
-            display: block;
-            margin: 0 auto;
-            border: 4px solid white;
-            border-radius: 4px;
-        }
+        /* idle */
+        #idle-msg { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; pointer-events:none; }
+        #idle-msg .big   { font-family:'Orbitron',sans-serif; font-size:clamp(14px,2vw,18px); color:#0d2535; letter-spacing:.12em; }
+        #idle-msg .small { font-size:10px; color:#0a1c26; letter-spacing:.15em; text-transform:uppercase; }
 
-        /* shareパネルのトランジション (Tailwind JIT 依存を排除) */
-        #share-panel {
-            transition: opacity 0.7s ease, transform 0.7s ease;
-        }
-        #share-panel.hidden-panel {
-            opacity: 0;
-            transform: translateY(1rem);
-            pointer-events: none;
-        }
-        #share-panel.visible-panel {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
+        /* processing overlay */
+        #proc-overlay { display:none; position:absolute; inset:0; z-index:10; background:rgba(2,5,10,.78); flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+        #proc-overlay.active { display:flex; }
+        .spinner { width:52px; height:52px; border:3px solid rgba(0,242,255,.15); border-top-color:var(--cyan); border-radius:50%; animation:spin .7s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg);} }
+        #proc-label { font-family:'Orbitron',sans-serif; font-size:11px; color:var(--cyan); letter-spacing:.15em; }
+        #proc-bar-wrap { width:200px; height:3px; background:#0d1f2a; border-radius:2px; overflow:hidden; }
+        #proc-bar { height:100%; background:var(--cyan); width:0%; transition:width .4s ease; box-shadow:0 0 8px var(--cyan); }
 
-        /* ログエリアの高さを固定してスクロール確保 */
-        #log-scroll {
-            max-height: 260px;
-            overflow-y: auto;
-        }
+        /* HUD */
+        .hud { position:absolute; z-index:3; font-size:9px; letter-spacing:.12em; color:rgba(0,242,255,.38); text-transform:uppercase; pointer-events:none; line-height:1.7; }
+        #hud-tl { top:12px; left:14px; }
+        #hud-tr { top:12px; right:14px; text-align:right; }
+        #hud-bl { bottom:12px; left:14px; }
+        #hud-br { bottom:12px; right:14px; text-align:right; }
 
-        /* スピナー */
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner {
-            width: 4rem; height: 4rem;
-            border: 4px solid rgba(0, 242, 255, 0.2);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 1rem;
+        /* corner brackets */
+        .corner { position:absolute; width:16px; height:16px; z-index:4; }
+        .c-tl{top:8px;   left:8px;  border-top:   2px solid rgba(0,242,255,.35);border-left:   2px solid rgba(0,242,255,.35);}
+        .c-tr{top:8px;   right:8px; border-top:   2px solid rgba(0,242,255,.35);border-right:  2px solid rgba(0,242,255,.35);}
+        .c-bl{bottom:8px;left:8px;  border-bottom:2px solid rgba(0,242,255,.35);border-left:   2px solid rgba(0,242,255,.35);}
+        .c-br{bottom:8px;right:8px; border-bottom:2px solid rgba(0,242,255,.35);border-right:  2px solid rgba(0,242,255,.35);}
+
+        /* toolbar */
+        #toolbar { display:none; position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:6; gap:8px; flex-wrap:wrap; justify-content:center; }
+        #toolbar.visible { display:flex; }
+        .tb-btn {
+            padding:6px 14px; border:1px solid rgba(0,242,255,.3); border-radius:5px;
+            background:rgba(0,15,25,.85); color:rgba(0,242,255,.65);
+            font-family:'Orbitron',sans-serif; font-size:8px; font-weight:700; letter-spacing:.12em;
+            cursor:pointer; transition:all .18s; white-space:nowrap;
         }
+        .tb-btn:hover { background:rgba(0,242,255,.15); color:#fff; border-color:var(--cyan); }
+        .tb-btn.active { background:rgba(0,242,255,.2); color:#fff; border-color:var(--cyan); }
+
+        /* ── SHARE ── */
+        #share-panel { display:none; margin-top:16px; }
+        #share-panel.visible { display:block; }
+        #share-inner { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+        #qrcode img, #qrcode canvas { display:block; border:4px solid #fff; border-radius:4px; }
+        #share-url-row { display:flex; gap:8px; width:100%; margin-top:10px; }
+        #share-url {
+            flex:1; min-width:0;
+            background:rgba(0,0,0,.5); border:1px solid var(--cyan-dim); border-radius:6px;
+            padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:10px; color:#3a8a9a; outline:none;
+        }
+        #btn-copy {
+            padding:8px 16px; background:rgba(0,242,255,.08); border:1px solid rgba(0,242,255,.3);
+            border-radius:6px; color:var(--cyan);
+            font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700; letter-spacing:.1em;
+            cursor:pointer; transition:all .18s; white-space:nowrap;
+        }
+        #btn-copy:hover { background:rgba(0,242,255,.2); color:#fff; }
+
+        /* ── MODAL ── */
+        #modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.88); display:flex; align-items:center; justify-content:center; z-index:999; opacity:0; pointer-events:none; transition:opacity .25s; }
+        #modal-overlay.open { opacity:1; pointer-events:auto; }
+        #modal-box { background:rgba(8,16,28,.97); border:1px solid var(--border); border-radius:16px; padding:36px 32px; max-width:400px; width:90%; text-align:center; box-shadow:0 0 60px rgba(0,242,255,.1); }
+        #modal-box h3 { font-family:'Orbitron',sans-serif; font-size:15px; color:var(--cyan); margin-bottom:12px; }
+        #modal-box p  { font-size:12px; color:#7a9aaa; line-height:1.8; margin-bottom:22px; white-space:pre-line; }
+        #modal-close { padding:8px 24px; background:rgba(0,242,255,.08); border:1px solid var(--border); border-radius:6px; color:var(--cyan); font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700; letter-spacing:.12em; cursor:pointer; transition:all .18s; }
+        #modal-close:hover { background:rgba(0,242,255,.2); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
+<div class="app-wrap">
 
-    <div class="max-w-6xl mx-auto flex flex-col gap-6">
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <h1>DINOGEN <span style="color:#fff">AI</span></h1>
+            <p>2D → 3D Displacement Engine // Three.js r128</p>
+        </div>
+        <div class="status-dot"><div class="dot"></div>ENGINE READY</div>
+    </header>
 
-        <!-- HEADER -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyan-900/50 pb-6">
-            <div>
-                <h1 class="text-3xl font-bold font-cyber tracking-tighter text-cyan-400">
-                    DINOGEN <span class="text-white">AI</span>
-                </h1>
-                <p class="text-xs font-mono text-cyan-700 tracking-[0.3em] uppercase">Image-to-3D Reconstruction Interface</p>
-            </div>
-            <div class="flex items-center gap-4 text-[10px] font-mono">
-                <div class="flex flex-col items-end">
-                    <span class="text-gray-500 uppercase tracking-widest">Core Status</span>
-                    <span class="text-green-400">OPTIMIZED</span>
-                </div>
-                <div class="w-10 h-10 border border-cyan-500/30 rounded-full flex items-center justify-center">
-                    <div class="w-2 h-2 bg-cyan-400 rounded-full animate-ping"></div>
-                </div>
-            </div>
-        </header>
+    <div class="main-grid">
 
-        <!-- MAIN VIEWPORT -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- LEFT -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
 
-            <!-- LEFT: INPUT & LOGS -->
-            <div class="lg:col-span-4 flex flex-col gap-6">
-
-                <!-- STEP 1: UPLOAD -->
-                <div class="glass p-6 rounded-2xl">
-                    <h2 class="text-sm font-bold font-cyber mb-4 text-cyan-500 uppercase">Step 01: Image Input</h2>
-
-                    <div id="drop-zone" class="border-2 border-dashed border-cyan-900/50 rounded-xl p-8 text-center hover:border-cyan-400 transition-colors cursor-pointer group">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-cyan-900 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            <!-- UPLOAD -->
+            <div class="panel">
+                <div class="panel-head"><span class="step-num">01</span> IMAGE INPUT</div>
+                <div class="panel-body">
+                    <div id="drop-zone">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        <p class="text-xs font-mono mb-2">DRAG &amp; DROP IMAGE</p>
-                        <p class="text-[10px] text-gray-500 uppercase">PNG, WEBP, JPG — UP TO 10MB</p>
-                        <input type="file" id="file-input" class="hidden" accept="image/*">
+                        <strong>DRAG &amp; DROP IMAGE</strong>
+                        <p>PNG / JPG / WEBP — max 10 MB</p>
+                        <input type="file" id="file-input" accept="image/*">
                     </div>
-
-                    <!-- プレビュー -->
-                    <div id="image-preview-container" class="mt-4 hidden border border-cyan-500/30 rounded-lg overflow-hidden bg-black">
-                        <img id="image-preview" src="" alt="Preview" class="w-full h-auto opacity-70">
-                    </div>
-
-                    <!-- ボタン -->
-                    <button id="btn-process"
-                        class="w-full mt-6 py-3 bg-cyan-500 text-black font-bold font-cyber rounded-lg transition-all opacity-50 cursor-not-allowed"
-                        disabled>
-                        GENERATE 3D MODEL
-                    </button>
-                </div>
-
-                <!-- STEP 2: LOGS -->
-                <div class="glass p-6 rounded-2xl">
-                    <h2 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-widest">System Logs</h2>
-                    <div id="log-scroll">
-                        <div id="log-container" class="space-y-1 text-[10px] font-mono text-cyan-900">
-                            <div>&gt; SYSTEM READY.</div>
-                            <div>&gt; AWAITING IMAGE INPUT...</div>
-                        </div>
+                    <div id="preview-wrap">
+                        <img id="image-preview" src="" alt="preview">
+                        <button class="clear-btn" id="btn-clear">✕</button>
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT: 3D / AR VIEWPORT -->
-            <div class="lg:col-span-8 flex flex-col gap-6">
+            <!-- PARAMS -->
+            <div class="panel">
+                <div class="panel-head"><span class="step-num">02</span> DEPTH PARAMETERS</div>
+                <div class="panel-body">
 
-                <div id="result-view" class="glass rounded-2xl w-full relative overflow-hidden flex items-center justify-center" style="height:500px;">
-
-                    <!-- スキャンバー (JS で .active を付与) -->
-                    <div id="scanning-bar" class="scanning-bar" style="display:none;"></div>
-
-                    <!-- 解析中オーバーレイ -->
-                    <div id="processing-overlay" class="absolute inset-0 bg-black/60 z-30 hidden flex flex-col items-center justify-center">
-                        <div class="text-center">
-                            <div class="spinner"></div>
-                            <p class="font-cyber text-cyan-400 animate-pulse">RECONSTRUCTING GEOMETRY...</p>
-                            <div class="w-48 h-1 bg-cyan-900 mt-4 rounded-full overflow-hidden mx-auto">
-                                <div id="process-progress" class="h-full bg-cyan-400 transition-all duration-500" style="width:0%"></div>
-                            </div>
+                    <div class="ctrl-row">
+                        <div class="ctrl-label">Depth Intensity</div>
+                        <div class="slider-wrap">
+                            <input type="range" id="sl-depth" min="0.5" max="5" step="0.1" value="2">
+                            <span class="slider-val" id="val-depth">2.0</span>
                         </div>
                     </div>
 
-                    <!-- 待機画面 -->
-                    <div id="placeholder-view" class="text-center p-12">
-                        <p class="font-cyber text-gray-700 text-xl">3D VIEWPORT IDLE</p>
-                        <p class="text-[10px] font-mono text-gray-800 mt-2 uppercase">Waiting for reconstruction data...</p>
+                    <div class="ctrl-row">
+                        <div class="ctrl-label">Mesh Resolution</div>
+                        <div class="slider-wrap">
+                            <input type="range" id="sl-res" min="32" max="256" step="32" value="128">
+                            <span class="slider-val" id="val-res">128</span>
+                        </div>
                     </div>
 
-                    <!-- 3D ビューア -->
-                    <div id="viewer-container" class="w-full h-full hidden" style="opacity:0; transition: opacity 1s ease;">
-                        <model-viewer
-                            id="dino-viewer"
-                            src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                            ar
-                            ar-modes="webxr scene-viewer quick-look"
-                            camera-controls
-                            auto-rotate
-                            shadow-intensity="1"
-                            environment-image="neutral"
-                            exposure="1"
-                            style="width:100%;height:100%;"
-                        >
-                            <button slot="ar-button"
-                                class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-cyan-500 text-black px-8 py-3 rounded-full font-cyber font-bold hover:scale-105 transition-all active-glow">
-                                START AR EXPERIENCE
-                            </button>
-                        </model-viewer>
+                    <div class="ctrl-row">
+                        <div class="ctrl-label">Depth Smoothing (Blur)</div>
+                        <div class="slider-wrap">
+                            <input type="range" id="sl-blur" min="0" max="8" step="1" value="2">
+                            <span class="slider-val" id="val-blur">2</span>
+                        </div>
+                    </div>
 
-                        <!-- ステータス表示 -->
-                        <div class="absolute top-6 right-6 p-4 glass rounded-lg text-right pointer-events-none">
-                            <p class="text-[10px] text-gray-500 font-mono">POLY COUNT</p>
-                            <p class="text-sm font-cyber">142,033</p>
-                            <p class="text-[10px] text-gray-500 font-mono mt-2">TEXTURE RES</p>
-                            <p class="text-sm font-cyber">4K / PBR</p>
+                    <div class="ctrl-row">
+                        <div class="ctrl-label">Wireframe Overlay</div>
+                        <div class="slider-wrap">
+                            <input type="range" id="sl-wire" min="0" max="1" step="0.05" value="0">
+                            <span class="slider-val" id="val-wire">0.00</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-process" disabled>▶ GENERATE 3D MODEL</button>
+                </div>
+            </div>
+
+            <!-- LOGS -->
+            <div class="panel">
+                <div class="panel-head">SYSTEM LOG</div>
+                <div id="log-scroll">
+                    <div id="log-container">
+                        <div class="log-info">&gt; SYSTEM READY.</div>
+                        <div class="log-info">&gt; AWAITING IMAGE INPUT...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- VIEWPORT -->
+            <div id="viewport-wrap">
+                <canvas id="three-canvas"></canvas>
+
+                <div class="corner c-tl"></div>
+                <div class="corner c-tr"></div>
+                <div class="corner c-bl"></div>
+                <div class="corner c-br"></div>
+
+                <div class="hud" id="hud-tl">VIVID.AR // DINOGEN v3.0</div>
+                <div class="hud" id="hud-tr">ENGINE: THREE.JS r128<br>MODE: DISPLACEMENT MAP</div>
+                <div class="hud" id="hud-bl">DRAG: ROTATE · SCROLL: ZOOM · SHIFT+DRAG: PAN</div>
+                <div class="hud" id="hud-br">FPS: --</div>
+
+                <div id="scan-bar"></div>
+
+                <div id="idle-msg">
+                    <div class="big">3D VIEWPORT IDLE</div>
+                    <div class="small">Upload an image and press Generate</div>
+                </div>
+
+                <div id="proc-overlay">
+                    <div class="spinner"></div>
+                    <div id="proc-label">ANALYZING...</div>
+                    <div id="proc-bar-wrap"><div id="proc-bar"></div></div>
+                </div>
+
+                <div id="toolbar">
+                    <button class="tb-btn active" id="tb-texture">TEXTURE</button>
+                    <button class="tb-btn"        id="tb-wire">WIREFRAME</button>
+                    <button class="tb-btn"        id="tb-depth">DEPTH MAP</button>
+                    <button class="tb-btn"        id="tb-auto">AUTO ROTATE</button>
+                    <button class="tb-btn"        id="tb-reset">RESET VIEW</button>
+                </div>
+            </div>
+
+            <!-- SHARE -->
+            <div id="share-panel" class="panel">
+                <div class="panel-head">SHARE / QR LINK</div>
+                <div class="panel-body">
+                    <div id="share-inner">
+                        <div id="qrcode" style="background:#fff;padding:8px;border-radius:6px;flex-shrink:0;"></div>
+                        <div style="flex:1;min-width:180px;">
+                            <p style="font-size:10px;color:#4a6070;line-height:1.8;">
+                                スマートフォンでQRコードをスキャンして<br>このページをモバイルで確認できます。
+                            </p>
+                            <div id="share-url-row">
+                                <input id="share-url" type="text" readonly>
+                                <button id="btn-copy">COPY</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- シェアパネル -->
-                <div id="share-panel" class="glass p-6 rounded-2xl hidden-panel" style="display:none;">
-                    <div class="flex flex-col md:flex-row gap-8 items-center">
-                        <div id="qrcode" class="shrink-0 bg-white p-2 rounded-lg"></div>
-                        <div class="flex-grow space-y-4 w-full">
-                            <div>
-                                <h3 class="text-sm font-cyber text-cyan-400 mb-2 uppercase tracking-widest">Share this Experience</h3>
-                                <p class="text-xs text-gray-400 font-mono">スマホのカメラでスキャンして、ARを起動してください。</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <input id="share-url" type="text" readonly
-                                    class="flex-grow bg-black/50 border border-cyan-900/50 rounded px-3 py-2 font-mono text-xs text-cyan-700 outline-none min-w-0">
-                                <button id="btn-copy"
-                                    class="shrink-0 px-4 py-2 bg-cyan-900/30 text-cyan-400 rounded border border-cyan-400/30 hover:bg-cyan-400 hover:text-black transition-all font-mono text-xs uppercase font-bold">
-                                    Copy
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
+</div>
 
-    <!-- NOTIFICATION MODAL -->
-    <div id="custom-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100]"
-         style="opacity:0; pointer-events:none; transition: opacity 0.3s ease;">
-        <div class="glass p-8 rounded-2xl max-w-sm w-full text-center mx-4">
-            <h3 id="modal-title" class="text-xl font-cyber text-cyan-400 mb-4"></h3>
-            <p id="modal-text" class="text-sm text-gray-400 mb-6"></p>
-            <button onclick="closeModal()"
-                class="px-6 py-2 bg-cyan-900/30 text-cyan-400 rounded-lg font-mono text-xs hover:bg-cyan-900/50 transition-colors">
-                CLOSE
-            </button>
-        </div>
+<!-- MODAL -->
+<div id="modal-overlay">
+    <div id="modal-box">
+        <h3 id="modal-title"></h3>
+        <p  id="modal-text"></p>
+        <button id="modal-close" onclick="closeModal()">CLOSE</button>
     </div>
+</div>
 
-    <script>
-    // ── 要素取得 ──────────────────────────────────────────
-    const dropZone              = document.getElementById('drop-zone');
-    const fileInput             = document.getElementById('file-input');
-    const btnProcess            = document.getElementById('btn-process');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imagePreview          = document.getElementById('image-preview');
-    const logContainer          = document.getElementById('log-container');
-    const logScroll             = document.getElementById('log-scroll');
-    const processingOverlay     = document.getElementById('processing-overlay');
-    const scanningBar           = document.getElementById('scanning-bar');
-    const viewerContainer       = document.getElementById('viewer-container');
-    const placeholderView       = document.getElementById('placeholder-view');
-    const progressBar           = document.getElementById('process-progress');
-    const sharePanel            = document.getElementById('share-panel');
-    const shareUrlInput         = document.getElementById('share-url');
-    const btnCopy               = document.getElementById('btn-copy');
+<!-- Off-screen canvases -->
+<canvas id="depth-canvas"   style="display:none;"></canvas>
+<canvas id="texture-canvas" style="display:none;"></canvas>
 
-    // ── ログ ──────────────────────────────────────────────
-    function addLog(text, isError = false) {
-        const div = document.createElement('div');
-        div.textContent = `> ${text}`;
-        if (isError) div.style.color = '#f87171';
-        logContainer.appendChild(div);
-        logScroll.scrollTop = logScroll.scrollHeight;
-    }
+<script>
+// ═══════════════════════════════════════════════════════
+//  REFS
+// ═══════════════════════════════════════════════════════
+const dropZone    = document.getElementById('drop-zone');
+const fileInput   = document.getElementById('file-input');
+const previewWrap = document.getElementById('preview-wrap');
+const imgPreview  = document.getElementById('image-preview');
+const btnProcess  = document.getElementById('btn-process');
+const btnClear    = document.getElementById('btn-clear');
+const logCont     = document.getElementById('log-container');
+const logScroll   = document.getElementById('log-scroll');
+const procOverlay = document.getElementById('proc-overlay');
+const procLabel   = document.getElementById('proc-label');
+const procBar     = document.getElementById('proc-bar');
+const scanBar     = document.getElementById('scan-bar');
+const idleMsg     = document.getElementById('idle-msg');
+const toolbar     = document.getElementById('toolbar');
+const sharePanel  = document.getElementById('share-panel');
+const shareUrl    = document.getElementById('share-url');
+const btnCopy     = document.getElementById('btn-copy');
+const depthCanvas = document.getElementById('depth-canvas');
+const texCanvas   = document.getElementById('texture-canvas');
+const threeCanvas = document.getElementById('three-canvas');
+const hudFps      = document.getElementById('hud-br');
 
-    // ── モーダル ──────────────────────────────────────────
-    function showModal(title, text) {
-        document.getElementById('modal-title').textContent = title;
-        document.getElementById('modal-text').textContent  = text;
-        const modal = document.getElementById('custom-modal');
-        modal.style.opacity       = '1';
-        modal.style.pointerEvents = 'auto';
-    }
-    function closeModal() {
-        const modal = document.getElementById('custom-modal');
-        modal.style.opacity       = '0';
-        modal.style.pointerEvents = 'none';
-    }
+const slDepth = document.getElementById('sl-depth');
+const slRes   = document.getElementById('sl-res');
+const slBlur  = document.getElementById('sl-blur');
+const slWire  = document.getElementById('sl-wire');
 
-    // ── QRコード生成 ──────────────────────────────────────
-    function generateQRCode(url) {
-        const container = document.getElementById('qrcode');
-        container.innerHTML = '';
-        try {
-            new QRCode(container, {
-                text: url,
-                width: 128, height: 128,
-                colorDark:  '#000000',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        } catch (e) {
-            container.textContent = 'QR生成エラー';
-            addLog('QR CODE GENERATION FAILED.', true);
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let loadedImg = null;
+let renderer, scene, camera, meshGroup;
+let animId = null;
+let autoRotate = false;
+let texMesh = null, wireMesh = null, depthMesh = null;
+let fpsCnt = 0, fpsLast = performance.now();
+
+// Orbit
+const orb = { active:false, shift:false, sx:0, sy:0, rotY:0.4, rotX:-0.18, panX:0, panY:0, zoom:5 };
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function log(msg, cls='log-info') {
+    const d = document.createElement('div');
+    d.className = cls; d.textContent = `> ${msg}`;
+    logCont.appendChild(d);
+    logScroll.scrollTop = logScroll.scrollHeight;
+}
+
+function showModal(title, text) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-text').textContent  = text;
+    document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function setProgress(pct, label) {
+    procBar.style.width = pct + '%';
+    if (label) procLabel.textContent = label;
+}
+
+// Slider sync util
+function syncSlider(sl, valId, dec) {
+    const v = parseFloat(sl.value);
+    document.getElementById(valId).textContent = v.toFixed(dec);
+    const pct = ((v - parseFloat(sl.min)) / (parseFloat(sl.max) - parseFloat(sl.min))) * 100;
+    sl.style.setProperty('--pct', pct + '%');
+}
+const sliders = [
+    [slDepth, 'val-depth', 1],
+    [slRes,   'val-res',   0],
+    [slBlur,  'val-blur',  0],
+    [slWire,  'val-wire',  2],
+];
+sliders.forEach(([sl, id, dec]) => {
+    syncSlider(sl, id, dec);
+    sl.addEventListener('input', () => {
+        syncSlider(sl, id, dec);
+        // Live wireframe update
+        if (sl === slWire && wireMesh) {
+            wireMesh.material.opacity = parseFloat(slWire.value);
         }
+    });
+});
+
+// ═══════════════════════════════════════════════════════
+//  FILE HANDLING
+// ═══════════════════════════════════════════════════════
+dropZone.addEventListener('click',     () => fileInput.click());
+fileInput.addEventListener('change',   e  => handleFiles(e.target.files));
+dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+});
+btnClear.addEventListener('click', () => {
+    loadedImg = null; imgPreview.src = '';
+    previewWrap.style.display = 'none';
+    btnProcess.disabled = true; fileInput.value = '';
+    log('IMAGE CLEARED.');
+});
+
+function handleFiles(files) {
+    if (!files || !files.length) return;
+    const f = files[0];
+    if (!f.type.startsWith('image/')) { showModal('ERROR', '画像ファイルを選択してください。'); return; }
+    if (f.size > 10*1024*1024)        { showModal('ERROR', 'ファイルサイズが10MBを超えています。'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            loadedImg = img;
+            imgPreview.src = e.target.result;
+            previewWrap.style.display = 'block';
+            btnProcess.disabled = false;
+            log(`IMAGE LOADED: ${f.name} [${img.width}×${img.height}]`, 'log-ok');
+        };
+        img.onerror = () => showModal('ERROR', '画像を読み込めませんでした。');
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(f);
+    fileInput.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  DEPTH MAP  (輝度→深度 + ガウシアンブラー)
+// ═══════════════════════════════════════════════════════
+function buildDepthMap(img, res, blur) {
+    depthCanvas.width = depthCanvas.height = res;
+    const ctx = depthCanvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, res, res);
+    const data = ctx.getImageData(0, 0, res, res).data;
+
+    const luma = new Float32Array(res * res);
+    for (let i = 0; i < res * res; i++) {
+        luma[i] = (0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2]) / 255;
     }
 
-    // ── コピー (Clipboard API → execCommand フォールバック) ─
-    btnCopy.addEventListener('click', async () => {
-        const url = shareUrlInput.value;
-        try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(url);
-            } else {
-                shareUrlInput.select();
-                document.execCommand('copy');
+    if (blur > 0) gaussBlur(luma, res, res, blur);
+    return luma;
+}
+
+function gaussBlur(buf, w, h, r) {
+    // 3-pass box blur ≈ gaussian
+    const tmp = new Float32Array(w * h);
+    for (let p = 0; p < 3; p++) {
+        for (let y = 0; y < h; y++)
+            for (let x = 0; x < w; x++) {
+                let s=0, n=0;
+                for (let d=-r; d<=r; d++) { const nx=Math.max(0,Math.min(w-1,x+d)); s+=buf[y*w+nx]; n++; }
+                tmp[y*w+x] = s/n;
             }
-            const orig = btnCopy.textContent;
-            btnCopy.textContent = 'COPIED!';
-            btnCopy.style.background = 'rgba(0,242,255,0.8)';
-            btnCopy.style.color = '#000';
-            setTimeout(() => {
-                btnCopy.textContent = orig;
-                btnCopy.style.background = '';
-                btnCopy.style.color = '';
-            }, 2000);
-        } catch (err) {
-            addLog('CLIPBOARD COPY FAILED.', true);
-        }
-    });
+        for (let y = 0; y < h; y++)
+            for (let x = 0; x < w; x++) {
+                let s=0, n=0;
+                for (let d=-r; d<=r; d++) { const ny=Math.max(0,Math.min(h-1,y+d)); s+=tmp[ny*w+x]; n++; }
+                buf[y*w+x] = s/n;
+            }
+    }
+}
 
-    // ── ファイル処理 ──────────────────────────────────────
-    dropZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', e => handleFiles(e.target.files));
-    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('border-cyan-400'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-cyan-400'));
-    dropZone.addEventListener('drop', e => {
+// ═══════════════════════════════════════════════════════
+//  THREE.JS SCENE
+// ═══════════════════════════════════════════════════════
+function initScene() {
+    const wrap = document.getElementById('viewport-wrap');
+    const W = wrap.clientWidth, H = wrap.clientHeight;
+
+    renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: false });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setClearColor(0x020508, 1);
+
+    scene  = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(50, W/H, 0.01, 100);
+    camera.position.z = orb.zoom;
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0x2a4455, 1.2));
+    const key = new THREE.DirectionalLight(0xffffff, 1.4);
+    key.position.set(3, 4, 5); scene.add(key);
+    const fill = new THREE.DirectionalLight(0x4488ff, 0.5);
+    fill.position.set(-4,-2,2); scene.add(fill);
+    const rim = new THREE.DirectionalLight(0x00ffcc, 0.6);
+    rim.position.set(0,0,-6); scene.add(rim);
+
+    meshGroup = new THREE.Group();
+    scene.add(meshGroup);
+
+    setupOrbit();
+
+    window.addEventListener('resize', () => {
+        const W2=wrap.clientWidth, H2=wrap.clientHeight;
+        renderer.setSize(W2,H2);
+        camera.aspect=W2/H2;
+        camera.updateProjectionMatrix();
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+//  ORBIT (scratch — no CDN needed)
+// ═══════════════════════════════════════════════════════
+function setupOrbit() {
+    const c = threeCanvas;
+
+    c.addEventListener('mousedown', e => {
+        orb.active=true; orb.shift=e.shiftKey;
+        orb.sx=e.clientX; orb.sy=e.clientY;
+    });
+    window.addEventListener('mouseup', () => orb.active=false);
+    window.addEventListener('mousemove', e => {
+        if (!orb.active) return;
+        const dx=(e.clientX-orb.sx)*0.009, dy=(e.clientY-orb.sy)*0.009;
+        orb.sx=e.clientX; orb.sy=e.clientY;
+        if (orb.shift) { orb.panX+=dx*0.6; orb.panY-=dy*0.6; }
+        else { orb.rotY+=dx; orb.rotX+=dy; orb.rotX=Math.max(-1.4,Math.min(1.4,orb.rotX)); }
+    });
+    c.addEventListener('wheel', e => {
         e.preventDefault();
-        dropZone.classList.remove('border-cyan-400');
-        handleFiles(e.dataTransfer.files);
+        orb.zoom=Math.max(1.5,Math.min(12,orb.zoom+e.deltaY*0.005));
+    }, {passive:false});
+
+    // Touch
+    let touches={}, lastD=null;
+    c.addEventListener('touchstart', e=>{
+        e.preventDefault();
+        [...e.changedTouches].forEach(t=>touches[t.identifier]=t);
+        if(Object.keys(touches).length===1){
+            const t=e.changedTouches[0];
+            orb.active=true; orb.sx=t.clientX; orb.sy=t.clientY;
+        }
+    },{passive:false});
+    c.addEventListener('touchmove', e=>{
+        e.preventDefault();
+        [...e.changedTouches].forEach(t=>touches[t.identifier]=t);
+        const ts=Object.values(touches);
+        if(ts.length===1){
+            const t=e.changedTouches[0];
+            const dx=(t.clientX-orb.sx)*0.012, dy=(t.clientY-orb.sy)*0.012;
+            orb.sx=t.clientX; orb.sy=t.clientY;
+            orb.rotY+=dx; orb.rotX+=dy; orb.rotX=Math.max(-1.4,Math.min(1.4,orb.rotX));
+        } else if(ts.length===2){
+            const d=Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);
+            if(lastD!==null) orb.zoom=Math.max(1.5,Math.min(12,orb.zoom-(d-lastD)*0.025));
+            lastD=d;
+        }
+    },{passive:false});
+    c.addEventListener('touchend', e=>{
+        [...e.changedTouches].forEach(t=>delete touches[t.identifier]);
+        if(!Object.keys(touches).length){orb.active=false; lastD=null;}
     });
+}
 
-    function handleFiles(files) {
-        if (!files || files.length === 0) return;
-        const file = files[0];
-        if (!file.type.startsWith('image/')) {
-            showModal('ERROR', '画像ファイル（PNG / WEBP / JPG）を選択してください。');
-            return;
+// ═══════════════════════════════════════════════════════
+//  BUILD MESHES
+// ═══════════════════════════════════════════════════════
+function buildMeshes(img, depthMap, res, intensity) {
+    // Dispose old
+    while (meshGroup.children.length) {
+        const m = meshGroup.children[0];
+        m.geometry.dispose();
+        if (m.material) {
+            if (m.material.map) m.material.map.dispose();
+            m.material.dispose();
         }
-        if (file.size > 10 * 1024 * 1024) {
-            showModal('ERROR', 'ファイルサイズが10MBを超えています。');
-            return;
+        meshGroup.remove(m);
+    }
+    texMesh = wireMesh = depthMesh = null;
+
+    // ── Texture ──────────────────────────────────────
+    texCanvas.width  = img.width;
+    texCanvas.height = img.height;
+    const tctx = texCanvas.getContext('2d');
+    tctx.drawImage(img, 0, 0);
+    const texture = new THREE.CanvasTexture(texCanvas);
+
+    // ── Depth visualization texture ──────────────────
+    const dRaw = new Uint8Array(res * res * 4);
+    for (let i = 0; i < res*res; i++) {
+        const v = Math.round(depthMap[i]*255);
+        dRaw[i*4]=v; dRaw[i*4+1]=v; dRaw[i*4+2]=v; dRaw[i*4+3]=255;
+    }
+    const depthTex = new THREE.DataTexture(dRaw, res, res, THREE.RGBAFormat);
+    depthTex.needsUpdate = true;
+
+    // ── Geometry: displace by depth ───────────────────
+    const aspect = img.width / img.height;
+    const geo = new THREE.PlaneGeometry(2*aspect, 2, res-1, res-1);
+    const pos = geo.attributes.position;
+
+    for (let i = 0; i < pos.count; i++) {
+        // UV from position
+        const u = pos.getX(i) / (2*aspect) + 0.5;
+        const v = pos.getY(i) / 2 + 0.5;
+        const px = Math.min(Math.floor(u*(res-1)), res-1);
+        const py = Math.min(Math.floor((1-v)*(res-1)), res-1);
+        pos.setZ(i, (depthMap[py*res + px] - 0.5) * intensity);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+
+    // ── Texture mesh ──────────────────────────────────
+    texMesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+        map: texture, roughness: 0.6, metalness: 0.05,
+    }));
+    meshGroup.add(texMesh);
+
+    // ── Wireframe overlay ─────────────────────────────
+    const wireGeo = new THREE.WireframeGeometry(geo);
+    wireMesh = new THREE.LineSegments(wireGeo, new THREE.LineBasicMaterial({
+        color: 0x00f2ff, transparent: true, opacity: parseFloat(slWire.value),
+    }));
+    meshGroup.add(wireMesh);
+
+    // ── Depth-only mesh ───────────────────────────────
+    depthMesh = new THREE.Mesh(geo.clone(), new THREE.MeshStandardMaterial({
+        map: depthTex, roughness: 0.8,
+    }));
+    depthMesh.visible = false;
+    meshGroup.add(depthMesh);
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER LOOP
+// ═══════════════════════════════════════════════════════
+function startRenderLoop() {
+    if (animId) cancelAnimationFrame(animId);
+
+    function tick() {
+        animId = requestAnimationFrame(tick);
+
+        fpsCnt++;
+        const now = performance.now();
+        if (now - fpsLast > 900) {
+            hudFps.textContent = `FPS: ${Math.round(fpsCnt/((now-fpsLast)/1000))}`;
+            fpsCnt=0; fpsLast=now;
         }
-        const reader = new FileReader();
-        reader.onload = e => {
-            imagePreview.src = e.target.result;
-            imagePreviewContainer.classList.remove('hidden');
-            enableProcessBtn();
-            addLog(`IMAGE LOADED: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
-        };
-        reader.onerror = () => {
-            showModal('ERROR', 'ファイルの読み込みに失敗しました。');
-            addLog('FILE READ ERROR.', true);
-        };
-        reader.readAsDataURL(file);
-        // 同じファイルを再選択できるようリセット
-        fileInput.value = '';
+
+        if (autoRotate) orb.rotY += 0.007;
+
+        const qY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), orb.rotY);
+        const qX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), orb.rotX);
+        meshGroup.quaternion.multiplyQuaternions(qY, qX);
+        meshGroup.position.set(orb.panX, orb.panY, 0);
+        camera.position.z = orb.zoom;
+
+        renderer.render(scene, camera);
+    }
+    tick();
+}
+
+// ═══════════════════════════════════════════════════════
+//  MAIN: GENERATE
+// ═══════════════════════════════════════════════════════
+btnProcess.addEventListener('click', async () => {
+    if (!loadedImg) return;
+
+    btnProcess.disabled = true;
+    idleMsg.style.display = 'none';
+    toolbar.classList.remove('visible');
+    sharePanel.classList.remove('visible');
+    setProgress(0, 'INITIALIZING...');
+    procOverlay.classList.add('active');
+    scanBar.classList.add('active');
+
+    const res       = parseInt(slRes.value);
+    const blur      = parseInt(slBlur.value);
+    const intensity = parseFloat(slDepth.value);
+
+    log(`RECONSTRUCTION START — res:${res} blur:${blur} depth:${intensity}`);
+
+    await sleep(150);
+    setProgress(15, 'EXTRACTING PIXEL LUMINANCE...');
+    log('BUILDING DEPTH MAP FROM LUMINANCE...');
+    await sleep(80);
+
+    // CPU depth map (yield to avoid blocking UI)
+    const depthMap = await new Promise(resolve =>
+        setTimeout(() => resolve(buildDepthMap(loadedImg, res, blur)), 0)
+    );
+
+    setProgress(45, 'GENERATING DISPLACEMENT GEOMETRY...');
+    log(`DEPTH MAP: ${res}×${res} — blur radius: ${blur}`, 'log-ok');
+    await sleep(200);
+
+    if (!renderer) {
+        initScene();
+        log('THREE.JS SCENE INITIALIZED.', 'log-ok');
     }
 
-    function enableProcessBtn() {
-        btnProcess.disabled = false;
-        btnProcess.classList.remove('opacity-50', 'cursor-not-allowed');
-        btnProcess.classList.add('hover:bg-cyan-400', 'cursor-pointer');
+    setProgress(70, 'CONSTRUCTING MESH...');
+    await sleep(100);
+
+    await new Promise(resolve =>
+        setTimeout(() => { buildMeshes(loadedImg, depthMap, res, intensity); resolve(); }, 0)
+    );
+
+    log(`MESH BUILT — ${res*res} vertices, ${(res-1)*(res-1)*2} faces`, 'log-ok');
+    setProgress(90, 'COMPUTING NORMALS & TEXTURES...');
+    await sleep(300);
+
+    startRenderLoop();
+    setProgress(100, 'COMPLETE');
+    log('3D MODEL READY ✓', 'log-ok');
+    log('DRAG=ROTATE  SCROLL=ZOOM  SHIFT+DRAG=PAN', 'log-info');
+    await sleep(350);
+
+    procOverlay.classList.remove('active');
+    scanBar.classList.remove('active');
+    toolbar.classList.add('visible');
+
+    const url = window.location.href;
+    shareUrl.value = url;
+    generateQR(url);
+    sharePanel.classList.add('visible');
+
+    btnProcess.disabled = false;
+    setViewMode('texture');
+
+    showModal(
+        'RECONSTRUCTION COMPLETE',
+        `メッシュ: ${res}×${res} 頂点 / ${(res-1)*(res-1)*2} 面\n深度強度: ${intensity}\n\nドラッグで回転・スクロールでズーム\nツールバーからワイヤフレーム・深度マップ表示も可能`
+    );
+});
+
+// ═══════════════════════════════════════════════════════
+//  VIEW MODE
+// ═══════════════════════════════════════════════════════
+function setViewMode(mode) {
+    if (!texMesh) return;
+    ['tb-texture','tb-wire','tb-depth'].forEach(id => document.getElementById(id).classList.remove('active'));
+
+    if (mode==='texture') {
+        texMesh.visible=true; depthMesh.visible=false;
+        wireMesh.material.opacity=parseFloat(slWire.value);
+        document.getElementById('tb-texture').classList.add('active');
+    } else if (mode==='wire') {
+        texMesh.visible=false; depthMesh.visible=false;
+        wireMesh.material.opacity=1.0;
+        document.getElementById('tb-wire').classList.add('active');
+    } else if (mode==='depth') {
+        texMesh.visible=false; depthMesh.visible=true;
+        wireMesh.material.opacity=0.2;
+        document.getElementById('tb-depth').classList.add('active');
     }
+}
 
-    function disableProcessBtn() {
-        btnProcess.disabled = true;
-        btnProcess.classList.add('opacity-50', 'cursor-not-allowed');
-        btnProcess.classList.remove('hover:bg-cyan-400', 'cursor-pointer');
-    }
+document.getElementById('tb-texture').addEventListener('click', () => setViewMode('texture'));
+document.getElementById('tb-wire').addEventListener('click',    () => setViewMode('wire'));
+document.getElementById('tb-depth').addEventListener('click',   () => setViewMode('depth'));
+document.getElementById('tb-auto').addEventListener('click', function() {
+    autoRotate=!autoRotate; this.classList.toggle('active',autoRotate);
+});
+document.getElementById('tb-reset').addEventListener('click', () => {
+    orb.rotY=0.4; orb.rotX=-0.18; orb.panX=0; orb.panY=0; orb.zoom=5;
+});
 
-    // ── 処理シミュレーション ─────────────────────────────
-    btnProcess.addEventListener('click', async () => {
-        disableProcessBtn();
+// ═══════════════════════════════════════════════════════
+//  QR & COPY
+// ═══════════════════════════════════════════════════════
+function generateQR(url) {
+    const el = document.getElementById('qrcode');
+    el.innerHTML = '';
+    try {
+        new QRCode(el, {text:url, width:128, height:128, colorDark:'#000', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H});
+    } catch(e) { el.textContent='QR生成エラー'; log('QR CODE FAILED.','log-err'); }
+}
 
-        // リセット
-        progressBar.style.width = '0%';
-        sharePanel.style.display = 'none';
-        sharePanel.classList.add('hidden-panel');
-        sharePanel.classList.remove('visible-panel');
-        viewerContainer.classList.add('hidden');
-        viewerContainer.style.opacity = '0';
-        placeholderView.classList.add('hidden');
+btnCopy.addEventListener('click', async () => {
+    try {
+        if (navigator.clipboard) await navigator.clipboard.writeText(shareUrl.value);
+        else { shareUrl.select(); document.execCommand('copy'); }
+        const o=btnCopy.textContent; btnCopy.textContent='COPIED!';
+        setTimeout(()=>btnCopy.textContent=o, 2000);
+    } catch(e){}
+});
 
-        // オーバーレイ & スキャンバー表示
-        processingOverlay.classList.remove('hidden');
-        processingOverlay.style.display = 'flex';
-        scanningBar.style.display = 'block';
-        scanningBar.classList.add('active');
-
-        addLog('INITIATING AI RECONSTRUCTION...');
-
-        const steps = [
-            { p: 20,  l: 'ANALYZING GEOMETRY...' },
-            { p: 50,  l: 'GENERATING DEPTH MAP...' },
-            { p: 80,  l: 'OPTIMIZING MESH...' },
-            { p: 100, l: 'RECONSTRUCTION COMPLETE.' },
-        ];
-
-        for (const step of steps) {
-            await sleep(900 + Math.random() * 600);
-            progressBar.style.width = `${step.p}%`;
-            addLog(step.l);
-        }
-
-        await sleep(400);
-
-        // オーバーレイ & スキャンバー非表示
-        processingOverlay.classList.add('hidden');
-        processingOverlay.style.display = 'none';
-        scanningBar.classList.remove('active');
-        scanningBar.style.display = 'none';
-
-        // 3D ビューア表示
-        viewerContainer.classList.remove('hidden');
-        await sleep(50); // reflow
-        viewerContainer.style.opacity = '1';
-
-        // シェアパネル表示
-        const currentUrl = window.location.href;
-        shareUrlInput.value = currentUrl;
-        generateQRCode(currentUrl);
-
-        sharePanel.style.display = 'block';
-        await sleep(50); // reflow
-        sharePanel.classList.remove('hidden-panel');
-        sharePanel.classList.add('visible-panel');
-
-        addLog('3D VIEWPORT ACTIVE. SHARING ENABLED.');
-        showModal('SUCCESS', '3Dモデルが生成されました。QRコードをスキャンして他のデバイスでAR体験できます。');
-
-        // 再アップロードに備えてボタンを再活性化
-        enableProcessBtn();
-    });
-
-    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-    </script>
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+</script>
 </body>
 </html>
