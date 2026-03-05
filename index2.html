@@ -4,11 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DinoGen AI - 2D to 3D AR Service</title>
+
+    <!-- model-viewer: defer で確実に読み込む -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QR Code Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+
+    <!-- QR Code: より安定した CDN に変更 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+            integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSRX1pGnBdG/Nfr9nJZBbzPBrT5oCGU+/GBw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- フォント: Inter を追加 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --primary: #00f2ff;
@@ -18,7 +27,7 @@
 
         body {
             background-color: var(--bg-dark);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
                 linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
                 linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
@@ -29,7 +38,7 @@
         }
 
         .font-cyber { font-family: 'Orbitron', sans-serif; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-mono  { font-family: 'JetBrains Mono', monospace; }
 
         .glass {
             background: var(--panel-bg);
@@ -40,13 +49,17 @@
 
         @keyframes pulse-cyan {
             0%, 100% { box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
-            50% { box-shadow: 0 0 25px rgba(0, 242, 255, 0.5); }
+            50%       { box-shadow: 0 0 25px rgba(0, 242, 255, 0.5); }
         }
+        .active-glow { animation: pulse-cyan 2s infinite; }
 
-        .active-glow {
-            animation: pulse-cyan 2s infinite;
+        /* スキャンバー: display:none → visibility で制御し、アニメーション確実発火 */
+        @keyframes scan-loop {
+            0%   { top: 0%;   opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
         }
-
         .scanning-bar {
             width: 100%;
             height: 4px;
@@ -56,15 +69,9 @@
             left: 0;
             z-index: 20;
             box-shadow: 0 0 20px var(--primary);
-            animation: scan-loop 3s ease-in-out infinite;
-            display: none;
         }
-
-        @keyframes scan-loop {
-            0% { top: 0%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
+        .scanning-bar.active {
+            animation: scan-loop 3s ease-in-out infinite;
         }
 
         model-viewer {
@@ -73,28 +80,63 @@
             --poster-color: transparent;
         }
 
-        /* QR Code Container Styling */
-        #qrcode img {
+        /* QR コードの img が中央に揃うよう保証 */
+        #qrcode img,
+        #qrcode canvas {
             display: block;
             margin: 0 auto;
             border: 4px solid white;
             border-radius: 4px;
         }
+
+        /* shareパネルのトランジション (Tailwind JIT 依存を排除) */
+        #share-panel {
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        #share-panel.hidden-panel {
+            opacity: 0;
+            transform: translateY(1rem);
+            pointer-events: none;
+        }
+        #share-panel.visible-panel {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* ログエリアの高さを固定してスクロール確保 */
+        #log-scroll {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        /* スピナー */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            width: 4rem; height: 4rem;
+            border: 4px solid rgba(0, 242, 255, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto h-full flex flex-col gap-6">
-        
+    <div class="max-w-6xl mx-auto flex flex-col gap-6">
+
         <!-- HEADER -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyan-900/50 pb-6">
             <div>
-                <h1 class="text-3xl font-bold font-cyber tracking-tighter text-cyan-400">DINOGEN <span class="text-white">AI</span></h1>
-                <p class="text-xs font-mono text-cyan-700 tracking-[0.3em]">IMAGE-TO-3D RECONSTRUCTION INTERFACE</p>
+                <h1 class="text-3xl font-bold font-cyber tracking-tighter text-cyan-400">
+                    DINOGEN <span class="text-white">AI</span>
+                </h1>
+                <p class="text-xs font-mono text-cyan-700 tracking-[0.3em] uppercase">Image-to-3D Reconstruction Interface</p>
             </div>
             <div class="flex items-center gap-4 text-[10px] font-mono">
                 <div class="flex flex-col items-end">
-                    <span class="text-gray-500 underline">CORE STATUS</span>
+                    <span class="text-gray-500 uppercase tracking-widest">Core Status</span>
                     <span class="text-green-400">OPTIMIZED</span>
                 </div>
                 <div class="w-10 h-10 border border-cyan-500/30 rounded-full flex items-center justify-center">
@@ -104,54 +146,64 @@
         </header>
 
         <!-- MAIN VIEWPORT -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
-            
-            <!-- LEFT: INPUT & STATUS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- LEFT: INPUT & LOGS -->
             <div class="lg:col-span-4 flex flex-col gap-6">
-                
+
                 <!-- STEP 1: UPLOAD -->
-                <div id="panel-upload" class="glass p-6 rounded-2xl transition-all duration-500">
+                <div class="glass p-6 rounded-2xl">
                     <h2 class="text-sm font-bold font-cyber mb-4 text-cyan-500 uppercase">Step 01: Image Input</h2>
-                    <div id="drop-zone" class="border-2 border-dashed border-cyan-900/50 rounded-xl p-8 text-center hover:border-cyan-400 transition-colors cursor-pointer group relative overflow-hidden">
-                        <div class="relative z-10">
-                            <svg class="w-12 h-12 mx-auto mb-4 text-cyan-900 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <p class="text-xs font-mono mb-2">DRAG & DROP IMAGE</p>
-                            <p class="text-[10px] text-gray-500 uppercase">PNG, WEBP, JPG UP TO 10MB</p>
-                        </div>
+
+                    <div id="drop-zone" class="border-2 border-dashed border-cyan-900/50 rounded-xl p-8 text-center hover:border-cyan-400 transition-colors cursor-pointer group">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-cyan-900 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="text-xs font-mono mb-2">DRAG &amp; DROP IMAGE</p>
+                        <p class="text-[10px] text-gray-500 uppercase">PNG, WEBP, JPG — UP TO 10MB</p>
                         <input type="file" id="file-input" class="hidden" accept="image/*">
                     </div>
-                    
+
+                    <!-- プレビュー -->
                     <div id="image-preview-container" class="mt-4 hidden border border-cyan-500/30 rounded-lg overflow-hidden bg-black">
                         <img id="image-preview" src="" alt="Preview" class="w-full h-auto opacity-70">
                     </div>
 
-                    <button id="btn-process" class="w-full mt-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold font-cyber rounded-lg transition-all opacity-50 cursor-not-allowed" disabled>
+                    <!-- ボタン -->
+                    <button id="btn-process"
+                        class="w-full mt-6 py-3 bg-cyan-500 text-black font-bold font-cyber rounded-lg transition-all opacity-50 cursor-not-allowed"
+                        disabled>
                         GENERATE 3D MODEL
                     </button>
                 </div>
 
                 <!-- STEP 2: LOGS -->
-                <div class="glass p-6 rounded-2xl flex-grow font-mono text-[10px] space-y-2 overflow-y-auto max-h-[300px]">
-                    <h2 class="text-xs font-bold text-gray-500 mb-2 uppercase">System Logs</h2>
-                    <div id="log-container" class="space-y-1 text-cyan-900">
-                        <div>> SYSTEM READY.</div>
-                        <div>> AWAITING IMAGE INPUT...</div>
+                <div class="glass p-6 rounded-2xl">
+                    <h2 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-widest">System Logs</h2>
+                    <div id="log-scroll">
+                        <div id="log-container" class="space-y-1 text-[10px] font-mono text-cyan-900">
+                            <div>&gt; SYSTEM READY.</div>
+                            <div>&gt; AWAITING IMAGE INPUT...</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- RIGHT: 3D / AR VIEWPORT -->
             <div class="lg:col-span-8 flex flex-col gap-6">
-                <div id="result-view" class="glass rounded-2xl w-full h-[500px] relative overflow-hidden flex items-center justify-center group">
-                    
-                    <!-- 解析中エフェクト -->
-                    <div id="processing-overlay" class="absolute inset-0 bg-black/60 z-30 flex flex-col items-center justify-center hidden">
-                        <div class="scanning-bar" style="display: block;"></div>
+
+                <div id="result-view" class="glass rounded-2xl w-full relative overflow-hidden flex items-center justify-center" style="height:500px;">
+
+                    <!-- スキャンバー (JS で .active を付与) -->
+                    <div id="scanning-bar" class="scanning-bar" style="display:none;"></div>
+
+                    <!-- 解析中オーバーレイ -->
+                    <div id="processing-overlay" class="absolute inset-0 bg-black/60 z-30 hidden flex flex-col items-center justify-center">
                         <div class="text-center">
-                            <div class="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mb-4"></div>
+                            <div class="spinner"></div>
                             <p class="font-cyber text-cyan-400 animate-pulse">RECONSTRUCTING GEOMETRY...</p>
-                            <div class="w-48 h-1 bg-cyan-900 mt-4 rounded-full overflow-hidden">
-                                <div id="process-progress" class="h-full bg-cyan-400 w-0 transition-all"></div>
+                            <div class="w-48 h-1 bg-cyan-900 mt-4 rounded-full overflow-hidden mx-auto">
+                                <div id="process-progress" class="h-full bg-cyan-400 transition-all duration-500" style="width:0%"></div>
                             </div>
                         </div>
                     </div>
@@ -159,14 +211,14 @@
                     <!-- 待機画面 -->
                     <div id="placeholder-view" class="text-center p-12">
                         <p class="font-cyber text-gray-700 text-xl">3D VIEWPORT IDLE</p>
-                        <p class="text-[10px] font-mono text-gray-800 mt-2">WAITING FOR RECONSTRUCTION DATA...</p>
+                        <p class="text-[10px] font-mono text-gray-800 mt-2 uppercase">Waiting for reconstruction data...</p>
                     </div>
 
-                    <!-- 3D表示本体 -->
-                    <div id="viewer-container" class="w-full h-full hidden opacity-0 transition-opacity duration-1000">
-                        <model-viewer 
+                    <!-- 3D ビューア -->
+                    <div id="viewer-container" class="w-full h-full hidden" style="opacity:0; transition: opacity 1s ease;">
+                        <model-viewer
                             id="dino-viewer"
-                            src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+                            src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
                             ar
                             ar-modes="webxr scene-viewer quick-look"
                             camera-controls
@@ -174,13 +226,16 @@
                             shadow-intensity="1"
                             environment-image="neutral"
                             exposure="1"
+                            style="width:100%;height:100%;"
                         >
-                            <button slot="ar-button" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-cyan-500 text-black px-8 py-3 rounded-full font-cyber font-bold hover:scale-105 transition-all active-glow">
+                            <button slot="ar-button"
+                                class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-cyan-500 text-black px-8 py-3 rounded-full font-cyber font-bold hover:scale-105 transition-all active-glow">
                                 START AR EXPERIENCE
                             </button>
                         </model-viewer>
 
-                        <div class="absolute top-6 right-6 p-4 glass rounded-lg text-right">
+                        <!-- ステータス表示 -->
+                        <div class="absolute top-6 right-6 p-4 glass rounded-lg text-right pointer-events-none">
                             <p class="text-[10px] text-gray-500 font-mono">POLY COUNT</p>
                             <p class="text-sm font-cyber">142,033</p>
                             <p class="text-[10px] text-gray-500 font-mono mt-2">TEXTURE RES</p>
@@ -189,8 +244,8 @@
                     </div>
                 </div>
 
-                <!-- SHARE PANEL (Appears after completion) -->
-                <div id="share-panel" class="glass p-6 rounded-2xl hidden opacity-0 transition-all duration-700 translate-y-4">
+                <!-- シェアパネル -->
+                <div id="share-panel" class="glass p-6 rounded-2xl hidden-panel" style="display:none;">
                     <div class="flex flex-col md:flex-row gap-8 items-center">
                         <div id="qrcode" class="shrink-0 bg-white p-2 rounded-lg"></div>
                         <div class="flex-grow space-y-4 w-full">
@@ -199,164 +254,232 @@
                                 <p class="text-xs text-gray-400 font-mono">スマホのカメラでスキャンして、ARを起動してください。</p>
                             </div>
                             <div class="flex gap-2">
-                                <input id="share-url" type="text" readonly class="flex-grow bg-black/50 border border-cyan-900/50 rounded px-3 py-2 font-mono text-xs text-cyan-700 outline-none">
-                                <button id="btn-copy" class="px-4 py-2 bg-cyan-900/30 text-cyan-400 rounded border border-cyan-400/30 hover:bg-cyan-400 hover:text-black transition-all font-mono text-xs uppercase font-bold">
-                                    Copy Link
+                                <input id="share-url" type="text" readonly
+                                    class="flex-grow bg-black/50 border border-cyan-900/50 rounded px-3 py-2 font-mono text-xs text-cyan-700 outline-none min-w-0">
+                                <button id="btn-copy"
+                                    class="shrink-0 px-4 py-2 bg-cyan-900/30 text-cyan-400 rounded border border-cyan-400/30 hover:bg-cyan-400 hover:text-black transition-all font-mono text-xs uppercase font-bold">
+                                    Copy
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
 
     <!-- NOTIFICATION MODAL -->
-    <div id="custom-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] opacity-0 pointer-events-none transition-opacity">
-        <div class="glass p-8 rounded-2xl max-w-sm w-full text-center">
+    <div id="custom-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100]"
+         style="opacity:0; pointer-events:none; transition: opacity 0.3s ease;">
+        <div class="glass p-8 rounded-2xl max-w-sm w-full text-center mx-4">
             <h3 id="modal-title" class="text-xl font-cyber text-cyan-400 mb-4"></h3>
             <p id="modal-text" class="text-sm text-gray-400 mb-6"></p>
-            <button onclick="closeModal()" class="px-6 py-2 bg-cyan-900/30 text-cyan-400 rounded-lg font-mono text-xs hover:bg-cyan-900/50">CLOSE</button>
+            <button onclick="closeModal()"
+                class="px-6 py-2 bg-cyan-900/30 text-cyan-400 rounded-lg font-mono text-xs hover:bg-cyan-900/50 transition-colors">
+                CLOSE
+            </button>
         </div>
     </div>
 
     <script>
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const btnProcess = document.getElementById('btn-process');
-        const imagePreviewContainer = document.getElementById('image-preview-container');
-        const imagePreview = document.getElementById('image-preview');
-        const logContainer = document.getElementById('log-container');
-        const processingOverlay = document.getElementById('processing-overlay');
-        const viewerContainer = document.getElementById('viewer-container');
-        const placeholderView = document.getElementById('placeholder-view');
-        const progressBar = document.getElementById('process-progress');
-        const sharePanel = document.getElementById('share-panel');
-        const shareUrlInput = document.getElementById('share-url');
-        const btnCopy = document.getElementById('btn-copy');
+    // ── 要素取得 ──────────────────────────────────────────
+    const dropZone              = document.getElementById('drop-zone');
+    const fileInput             = document.getElementById('file-input');
+    const btnProcess            = document.getElementById('btn-process');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePreview          = document.getElementById('image-preview');
+    const logContainer          = document.getElementById('log-container');
+    const logScroll             = document.getElementById('log-scroll');
+    const processingOverlay     = document.getElementById('processing-overlay');
+    const scanningBar           = document.getElementById('scanning-bar');
+    const viewerContainer       = document.getElementById('viewer-container');
+    const placeholderView       = document.getElementById('placeholder-view');
+    const progressBar           = document.getElementById('process-progress');
+    const sharePanel            = document.getElementById('share-panel');
+    const shareUrlInput         = document.getElementById('share-url');
+    const btnCopy               = document.getElementById('btn-copy');
 
-        // Log Function
-        function addLog(text, isError = false) {
-            const div = document.createElement('div');
-            div.textContent = `> ${text}`;
-            if (isError) div.className = 'text-red-500';
-            logContainer.appendChild(div);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
+    // ── ログ ──────────────────────────────────────────────
+    function addLog(text, isError = false) {
+        const div = document.createElement('div');
+        div.textContent = `> ${text}`;
+        if (isError) div.style.color = '#f87171';
+        logContainer.appendChild(div);
+        logScroll.scrollTop = logScroll.scrollHeight;
+    }
 
-        // Modal Functions
-        function showModal(title, text) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-text').innerText = text;
-            const modal = document.getElementById('custom-modal');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-        }
+    // ── モーダル ──────────────────────────────────────────
+    function showModal(title, text) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-text').textContent  = text;
+        const modal = document.getElementById('custom-modal');
+        modal.style.opacity       = '1';
+        modal.style.pointerEvents = 'auto';
+    }
+    function closeModal() {
+        const modal = document.getElementById('custom-modal');
+        modal.style.opacity       = '0';
+        modal.style.pointerEvents = 'none';
+    }
 
-        function closeModal() {
-            const modal = document.getElementById('custom-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-        }
-
-        // QR Code Generation
-        function generateQRCode(url) {
-            document.getElementById("qrcode").innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), {
+    // ── QRコード生成 ──────────────────────────────────────
+    function generateQRCode(url) {
+        const container = document.getElementById('qrcode');
+        container.innerHTML = '';
+        try {
+            new QRCode(container, {
                 text: url,
-                width: 128,
-                height: 128,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+                width: 128, height: 128,
+                colorDark:  '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
             });
+        } catch (e) {
+            container.textContent = 'QR生成エラー';
+            addLog('QR CODE GENERATION FAILED.', true);
         }
+    }
 
-        // Clipboard Copy (Instruction compliance: execCommand fallback)
-        btnCopy.onclick = () => {
-            shareUrlInput.select();
-            try {
+    // ── コピー (Clipboard API → execCommand フォールバック) ─
+    btnCopy.addEventListener('click', async () => {
+        const url = shareUrlInput.value;
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(url);
+            } else {
+                shareUrlInput.select();
                 document.execCommand('copy');
-                const originalText = btnCopy.innerText;
-                btnCopy.innerText = "COPIED!";
-                btnCopy.classList.add('bg-cyan-400', 'text-black');
-                setTimeout(() => {
-                    btnCopy.innerText = originalText;
-                    btnCopy.classList.remove('bg-cyan-400', 'text-black');
-                }, 2000);
-            } catch (err) {
-                console.error('Copy failed', err);
             }
+            const orig = btnCopy.textContent;
+            btnCopy.textContent = 'COPIED!';
+            btnCopy.style.background = 'rgba(0,242,255,0.8)';
+            btnCopy.style.color = '#000';
+            setTimeout(() => {
+                btnCopy.textContent = orig;
+                btnCopy.style.background = '';
+                btnCopy.style.color = '';
+            }, 2000);
+        } catch (err) {
+            addLog('CLIPBOARD COPY FAILED.', true);
+        }
+    });
+
+    // ── ファイル処理 ──────────────────────────────────────
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('border-cyan-400'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-cyan-400'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('border-cyan-400');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    function handleFiles(files) {
+        if (!files || files.length === 0) return;
+        const file = files[0];
+        if (!file.type.startsWith('image/')) {
+            showModal('ERROR', '画像ファイル（PNG / WEBP / JPG）を選択してください。');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            showModal('ERROR', 'ファイルサイズが10MBを超えています。');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => {
+            imagePreview.src = e.target.result;
+            imagePreviewContainer.classList.remove('hidden');
+            enableProcessBtn();
+            addLog(`IMAGE LOADED: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
         };
+        reader.onerror = () => {
+            showModal('ERROR', 'ファイルの読み込みに失敗しました。');
+            addLog('FILE READ ERROR.', true);
+        };
+        reader.readAsDataURL(file);
+        // 同じファイルを再選択できるようリセット
+        fileInput.value = '';
+    }
 
-        // Handle File Input
-        dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleFiles(e.target.files);
-        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('border-cyan-400'); };
-        dropZone.ondragleave = () => { dropZone.classList.remove('border-cyan-400'); };
-        dropZone.ondrop = (e) => { e.preventDefault(); dropZone.classList.remove('border-cyan-400'); handleFiles(e.dataTransfer.files); };
+    function enableProcessBtn() {
+        btnProcess.disabled = false;
+        btnProcess.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnProcess.classList.add('hover:bg-cyan-400', 'cursor-pointer');
+    }
 
-        function handleFiles(files) {
-            if (files.length > 0) {
-                const file = files[0];
-                if (!file.type.startsWith('image/')) {
-                    showModal('ERROR', '画像ファイルを選択してください。');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreview.src = e.target.result;
-                    imagePreviewContainer.classList.remove('hidden');
-                    btnProcess.classList.remove('opacity-50', 'cursor-not-allowed');
-                    btnProcess.disabled = false;
-                    addLog(`IMAGE LOADED: ${file.name}`);
-                };
-                reader.readAsDataURL(file);
-            }
+    function disableProcessBtn() {
+        btnProcess.disabled = true;
+        btnProcess.classList.add('opacity-50', 'cursor-not-allowed');
+        btnProcess.classList.remove('hover:bg-cyan-400', 'cursor-pointer');
+    }
+
+    // ── 処理シミュレーション ─────────────────────────────
+    btnProcess.addEventListener('click', async () => {
+        disableProcessBtn();
+
+        // リセット
+        progressBar.style.width = '0%';
+        sharePanel.style.display = 'none';
+        sharePanel.classList.add('hidden-panel');
+        sharePanel.classList.remove('visible-panel');
+        viewerContainer.classList.add('hidden');
+        viewerContainer.style.opacity = '0';
+        placeholderView.classList.add('hidden');
+
+        // オーバーレイ & スキャンバー表示
+        processingOverlay.classList.remove('hidden');
+        processingOverlay.style.display = 'flex';
+        scanningBar.style.display = 'block';
+        scanningBar.classList.add('active');
+
+        addLog('INITIATING AI RECONSTRUCTION...');
+
+        const steps = [
+            { p: 20,  l: 'ANALYZING GEOMETRY...' },
+            { p: 50,  l: 'GENERATING DEPTH MAP...' },
+            { p: 80,  l: 'OPTIMIZING MESH...' },
+            { p: 100, l: 'RECONSTRUCTION COMPLETE.' },
+        ];
+
+        for (const step of steps) {
+            await sleep(900 + Math.random() * 600);
+            progressBar.style.width = `${step.p}%`;
+            addLog(step.l);
         }
 
-        // Processing Simulation
-        btnProcess.onclick = async () => {
-            btnProcess.disabled = true;
-            btnProcess.classList.add('opacity-50');
-            processingOverlay.classList.remove('hidden');
-            placeholderView.classList.add('hidden');
-            sharePanel.classList.add('hidden', 'opacity-0');
-            
-            addLog('INITIATING AI RECONSTRUCTION...');
+        await sleep(400);
 
-            const steps = [
-                { p: 20, l: 'ANALYZING GEOMETRY...' },
-                { p: 50, l: 'GENERATING DEPTH MAP...' },
-                { p: 80, l: 'OPTIMIZING MESH...' },
-                { p: 100, l: 'RECONSTRUCTION COMPLETE.' }
-            ];
+        // オーバーレイ & スキャンバー非表示
+        processingOverlay.classList.add('hidden');
+        processingOverlay.style.display = 'none';
+        scanningBar.classList.remove('active');
+        scanningBar.style.display = 'none';
 
-            for (const step of steps) {
-                await new Promise(r => setTimeout(r, 1000 + Math.random() * 500));
-                progressBar.style.width = `${step.p}%`;
-                addLog(step.l);
-            }
+        // 3D ビューア表示
+        viewerContainer.classList.remove('hidden');
+        await sleep(50); // reflow
+        viewerContainer.style.opacity = '1';
 
-            // Show 3D Viewer and Share Panel
-            setTimeout(() => {
-                processingOverlay.classList.add('hidden');
-                viewerContainer.classList.remove('hidden');
-                setTimeout(() => viewerContainer.classList.remove('opacity-0'), 100);
-                
-                // Setup Share UI
-                const currentUrl = window.location.href;
-                shareUrlInput.value = currentUrl;
-                generateQRCode(currentUrl);
-                
-                sharePanel.classList.remove('hidden');
-                setTimeout(() => {
-                    sharePanel.classList.remove('opacity-0', 'translate-y-4');
-                }, 300);
+        // シェアパネル表示
+        const currentUrl = window.location.href;
+        shareUrlInput.value = currentUrl;
+        generateQRCode(currentUrl);
 
-                addLog('3D VIEWPORT ACTIVE. SHARING ENABLED.');
-                showModal('SUCCESS', '3Dモデルが生成されました。QRコードを使って他のデバイスで体験できます。');
-            }, 500);
-        };
+        sharePanel.style.display = 'block';
+        await sleep(50); // reflow
+        sharePanel.classList.remove('hidden-panel');
+        sharePanel.classList.add('visible-panel');
+
+        addLog('3D VIEWPORT ACTIVE. SHARING ENABLED.');
+        showModal('SUCCESS', '3Dモデルが生成されました。QRコードをスキャンして他のデバイスでAR体験できます。');
+
+        // 再アップロードに備えてボタンを再活性化
+        enableProcessBtn();
+    });
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
     </script>
 </body>
 </html>
