@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivid Design Concept</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .hero-gradient {
+            background: radial-gradient(circle at 50% 50%, #22d3ee22 0%, #050505 70%);
+        }
+
+        .text-outline {
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+            color: transparent;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        #cursor-follower {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .reveal-text {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body>
+    <div id="cursor-follower"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center glass">
+        <div class="text-2xl font-black tracking-tighter">VIVID.</div>
+        <div class="hidden md:flex space-x-8 text-sm font-medium tracking-widest uppercase">
+            <a href="#" class="hover:text-cyan-400 transition-colors">Work</a>
+            <a href="#" class="hover:text-cyan-400 transition-colors">About</a>
+            <a href="#" class="hover:text-cyan-400 transition-colors">Services</a>
+            <a href="#" class="hover:text-cyan-400 transition-colors">Contact</a>
+        </div>
+        <button class="bg-white text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-cyan-400 transition-all">START A PROJECT</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative min-h-screen flex items-center justify-center overflow-hidden hero-gradient pt-20">
+        <div class="container mx-auto px-4 z-10 text-center">
+            <h2 class="text-sm md:text-lg font-bold tracking-[0.5em] uppercase text-cyan-400 mb-4 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+                Digital Experience Studio
+            </h2>
+            <h1 class="text-6xl md:text-[10rem] font-black leading-none tracking-tighter mb-8">
+                <span class="block reveal-text">CREATING</span>
+                <span class="block text-outline hover:text-white transition-all duration-700 cursor-default">THE FUTURE</span>
+                <span class="block reveal-text">OF DIGITAL</span>
+            </h1>
+            <p class="max-w-xl mx-auto text-gray-400 text-lg md:text-xl mb-12 opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]">
+                境界を超えるデザイン。鮮烈な第一印象から始まる、新しいブランド体験を。
+            </p>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-6 opacity-0 animate-[fadeIn_1s_ease-out_1.5s_forwards]">
+                <a href="#work" class="group relative px-8 py-4 bg-cyan-500 text-black font-bold rounded-sm overflow-hidden transition-all hover:scale-105">
+                    <span class="relative z-10">VIEW OUR WORK</span>
+                </a>
+                <a href="#about" class="px-8 py-4 border border-white/20 hover:border-white transition-all rounded-sm font-bold">
+                    OUR STORY
+                </a>
+            </div>
+        </div>
+
+        <!-- Floating Elements -->
+        <div class="absolute top-1/4 left-10 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] animate-float"></div>
+        <div class="absolute bottom-1/4 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] animate-float" style="animation-delay: -3s"></div>
+    </header>
+
+    <!-- Content Section -->
+    <section id="work" class="py-32 relative z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+                <div>
+                    <h3 class="text-4xl md:text-6xl font-bold tracking-tight">FEATURED<br>PROJECTS</h3>
+                </div>
+                <p class="text-gray-400 max-w-sm mb-2">
+                    私たちは戦略、デザイン、テクノロジーを融合させ、記憶に残るプロダクトを生み出します。
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Project 1 -->
+                <div class="group cursor-pointer">
+                    <div class="relative aspect-video overflow-hidden rounded-lg bg-zinc-900 border border-white/5">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                           <div class="w-16 h-16 border border-white/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span class="text-2xl">→</span>
+                           </div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 p-8">
+                            <span class="text-cyan-400 text-xs font-bold tracking-widest uppercase">Branding / Web</span>
+                            <h4 class="text-2xl font-bold mt-2">NEON OASIS 2024</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="group cursor-pointer mt-0 md:mt-24">
+                    <div class="relative aspect-[4/5] overflow-hidden rounded-lg bg-zinc-900 border border-white/5">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                           <div class="w-16 h-16 border border-white/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span class="text-2xl">→</span>
+                           </div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 p-8">
+                            <span class="text-cyan-400 text-xs font-bold tracking-widest uppercase">Mobile App / UIUX</span>
+                            <h4 class="text-2xl font-bold mt-2">CYBER FLOW INTERFACE</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section class="py-32 glass">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="space-y-4">
+                    <div class="text-4xl font-bold text-cyan-400">01</div>
+                    <h5 class="text-xl font-bold uppercase tracking-widest">Strategy</h5>
+                    <p class="text-gray-400">市場分析に基づき、ブランドの核となるストーリーを構築します。</p>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-4xl font-bold text-cyan-400">02</div>
+                    <h5 class="text-xl font-bold uppercase tracking-widest">Design</h5>
+                    <p class="text-gray-400">最新のトレンドと普遍的な美しさを融合させたビジュアルを提供します。</p>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-4xl font-bold text-cyan-400">03</div>
+                    <h5 class="text-xl font-bold uppercase tracking-widest">Development</h5>
+                    <p class="text-gray-400">パフォーマンスと体験を両立させた高品質な実装を行います。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 border-t border-white/10">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl md:text-7xl font-black mb-12 tracking-tighter">LET'S TALK.</h2>
+            <a href="mailto:hello@example.com" class="text-xl md:text-2xl text-cyan-400 hover:underline">hello@vivid-design.studio</a>
+            <div class="mt-20 flex justify-center space-x-8 text-xs font-bold tracking-widest uppercase text-gray-500">
+                <a href="#" class="hover:text-white transition-colors">Twitter</a>
+                <a href="#" class="hover:text-white transition-colors">Instagram</a>
+                <a href="#" class="hover:text-white transition-colors">Dribbble</a>
+            </div>
+            <p class="mt-8 text-xs text-gray-700">© 2024 VIVID STUDIO. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Cursor Follower
+        const follower = document.getElementById('cursor-follower');
+        document.addEventListener('mousemove', (e) => {
+            follower.style.left = e.clientX + 'px';
+            follower.style.top = e.clientY + 'px';
+        });
+
+        // Simple Intersection Observer for scroll reveal
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.classList.remove('translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section, .group').forEach(el => {
+            el.classList.add('transition-all', 'duration-1000', 'translate-y-10', 'opacity-0');
+            observer.observe(el);
+        });
+
+        // Handle navigation glass effect on scroll
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.style.paddingTop = '1rem';
+                nav.style.paddingBottom = '1rem';
+                nav.style.backgroundColor = 'rgba(5, 5, 5, 0.8)';
+            } else {
+                nav.style.paddingTop = '1.5rem';
+                nav.style.paddingBottom = '1.5rem';
+                nav.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+            }
+        });
+    </script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body>
+</html>
