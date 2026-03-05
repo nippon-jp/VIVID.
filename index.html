@@ -94,6 +94,15 @@
             text-transform: uppercase; color: #000;
         }
 
+        /* ─── DINOGEN AI Badge ─── */
+        .ai-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            padding: 4px 12px; border-radius: 999px;
+            font-size: 10px; font-weight: 800; letter-spacing: .12em;
+            text-transform: uppercase; color: #000;
+        }
+
         /* ─── AR Modal Overlay ─── */
         #ar-modal {
             display: none;
@@ -207,12 +216,43 @@
         }
         .ar-project-card:hover { border-color: rgba(34,211,238,.5); }
 
+        /* DINOGEN AI project card special styles */
+        .ai-project-card {
+            border: 1px solid rgba(245,158,11,.2);
+            background: linear-gradient(135deg, rgba(245,158,11,.04) 0%, rgba(239,68,68,.04) 100%);
+            position: relative; overflow: hidden;
+            transition: border-color .3s;
+        }
+        .ai-project-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(245,158,11,.06), transparent 50%);
+            pointer-events: none;
+        }
+        .ai-project-card:hover { border-color: rgba(245,158,11,.5); }
+
         /* Scan frame corners */
         .corner { position: absolute; width: 18px; height: 18px; z-index: 2; }
         .corner-tl { top: 10px; left: 10px; border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
         .corner-tr { top: 10px; right: 10px; border-top: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
         .corner-bl { bottom: 10px; left: 10px; border-bottom: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
         .corner-br { bottom: 10px; right: 10px; border-bottom: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
+
+        /* AI corner brackets */
+        .corner-ai { position: absolute; width: 18px; height: 18px; z-index: 2; }
+        .corner-ai-tl { top: 10px; left: 10px; border-top: 2px solid #f59e0b; border-left: 2px solid #f59e0b; }
+        .corner-ai-tr { top: 10px; right: 10px; border-top: 2px solid #f59e0b; border-right: 2px solid #f59e0b; }
+        .corner-ai-bl { bottom: 10px; left: 10px; border-bottom: 2px solid #f59e0b; border-left: 2px solid #f59e0b; }
+        .corner-ai-br { bottom: 10px; right: 10px; border-bottom: 2px solid #f59e0b; border-right: 2px solid #f59e0b; }
+
+        @keyframes aiPulse {
+            0%, 100% { opacity: .4; }
+            50% { opacity: 1; }
+        }
+        .ai-pulse-dot {
+            display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+            background: #f59e0b;
+            animation: aiPulse 1.8s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
@@ -237,18 +277,15 @@
         <div id="ar-canvas-wrap">
             <div id="ar-canvas-bg"></div>
             <div class="scan-line"></div>
-            <!-- corner brackets -->
             <div class="corner corner-tl"></div>
             <div class="corner corner-tr"></div>
             <div class="corner corner-bl"></div>
             <div class="corner corner-br"></div>
-            <!-- HUD labels -->
             <div class="hud-label" id="hud-tl">VIVID.AR // v2.4.1</div>
             <div class="hud-label" id="hud-tr">SPECIMEN: T-REX<br>ERA: LATE CRETACEOUS</div>
             <div class="hud-label" id="hud-bl">SCALE: 1:100 // HEIGHT: 5.8m</div>
-            <div class="hud-label" id="hud-br" id="hud-fps">FPS: --</div>
+            <div class="hud-label" id="hud-br">FPS: --</div>
             <div class="hud-crosshair"></div>
-            <!-- Three.js canvas injected here -->
             <canvas id="three-canvas"></canvas>
         </div>
 
@@ -278,6 +315,9 @@
             <a href="#services" class="hover:text-cyan-400 transition-colors">Services</a>
             <a href="#ar" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
                 AR <span style="font-size:8px; background:#22d3ee; color:#000; padding:1px 5px; border-radius:3px; font-weight:800;">NEW</span>
+            </a>
+            <a href="index2.html" class="hover:text-amber-400 transition-colors flex items-center gap-2">
+                DINOGEN AI <span style="font-size:8px; background:linear-gradient(135deg,#f59e0b,#ef4444); color:#000; padding:1px 5px; border-radius:3px; font-weight:800;">AI</span>
             </a>
             <a href="#contact" class="hover:text-cyan-400 transition-colors">Contact</a>
         </div>
@@ -363,15 +403,11 @@
                 <!-- Project 3 — T-Rex AR (full width) -->
                 <article class="group cursor-pointer md:col-span-2 mt-0 md:mt-8" id="trex-card">
                     <div class="ar-project-card relative rounded-lg overflow-hidden" style="min-height:340px;">
-                        <!-- Grid lines decoration -->
                         <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(34,211,238,.04) 39px,rgba(34,211,238,.04) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(34,211,238,.04) 39px,rgba(34,211,238,.04) 40px);pointer-events:none;"></div>
-
-                        <!-- Ambient glow blobs -->
                         <div style="position:absolute;width:300px;height:300px;right:10%;top:50%;transform:translateY(-50%);background:radial-gradient(circle,rgba(34,211,238,.12),transparent 70%);pointer-events:none;"></div>
                         <div style="position:absolute;width:200px;height:200px;left:5%;bottom:0;background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%);pointer-events:none;"></div>
 
                         <div class="absolute inset-0 flex flex-col md:flex-row items-center gap-10 p-10 md:p-14 z-10">
-                            <!-- LEFT: text -->
                             <div class="flex-1">
                                 <div class="flex items-center gap-3 mb-4">
                                     <div class="ar-badge">⬡ WebAR / 3D</div>
@@ -401,52 +437,133 @@
                                 </button>
                             </div>
 
-                            <!-- RIGHT: preview thumbnail -->
                             <div class="flex-shrink-0 relative" style="width:clamp(160px,28vw,260px); height:clamp(160px,28vw,260px);">
-                                <!-- Static T-Rex silhouette SVG -->
                                 <div style="position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(34,211,238,.25);animation:float 5s ease-in-out infinite;"></div>
                                 <div style="position:absolute;inset:12px;border-radius:50%;border:1px solid rgba(34,211,238,.1);"></div>
                                 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:relative;z-index:1;filter:drop-shadow(0 0 20px rgba(34,211,238,.4))">
-                                    <!-- T-Rex silhouette path -->
                                     <g fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.9">
-                                        <!-- body -->
                                         <path d="M80 120 Q70 110 65 95 Q60 80 70 70 Q80 60 95 62 Q110 64 115 75 Q120 88 115 100 Q110 112 100 118 Z" />
-                                        <!-- tail -->
                                         <path d="M80 120 Q68 128 55 135 Q42 142 30 148 Q20 152 15 150" />
-                                        <!-- neck -->
                                         <path d="M100 65 Q102 52 98 42 Q96 34 100 28" />
-                                        <!-- head -->
                                         <path d="M98 28 Q88 22 82 24 Q74 26 72 32 Q70 38 76 42 Q84 44 92 40 Q100 36 98 28 Z" />
-                                        <!-- jaw -->
                                         <path d="M72 32 Q65 34 60 36 Q75 44 82 44" />
-                                        <!-- eye -->
                                         <circle cx="82" cy="29" r="2" fill="#22d3ee" />
-                                        <!-- front arm -->
                                         <path d="M107 82 Q118 84 122 90 Q124 94 120 96 Q116 94 112 90" />
                                         <path d="M120 96 Q122 100 118 102" />
                                         <path d="M120 96 Q124 99 121 103" />
-                                        <!-- back leg left -->
                                         <path d="M82 118 Q78 132 74 142 Q72 150 68 155 Q65 158 60 156" />
                                         <path d="M68 155 Q63 160 58 158" />
                                         <path d="M68 155 Q67 162 62 162" />
-                                        <!-- back leg right -->
                                         <path d="M97 118 Q96 132 94 144 Q93 152 90 157 Q87 160 82 158" />
                                         <path d="M90 157 Q85 162 80 160" />
                                         <path d="M90 157 Q89 164 84 164" />
-                                        <!-- spine detail -->
                                         <path d="M95 65 Q97 75 97 90 Q97 105 95 115" stroke-dasharray="3 3" opacity="0.4" />
-                                        <!-- rib detail -->
                                         <path d="M88 75 Q100 78 108 80" opacity="0.3" />
                                         <path d="M86 82 Q98 85 108 86" opacity="0.3" />
                                         <path d="M84 89 Q96 92 106 92" opacity="0.3" />
                                     </g>
                                 </svg>
-                                <!-- pulse ring -->
                                 <div style="position:absolute;inset:20%;border-radius:50%;border:1px solid rgba(34,211,238,.3);animation:pulseRing 2s ease-out infinite;pointer-events:none;"></div>
                             </div>
                         </div>
                     </div>
                 </article>
+
+                <!-- Project 4 — DINOGEN AI (full width) -->
+                <article class="group cursor-pointer md:col-span-2 mt-0 md:mt-8">
+                    <a href="index2.html" style="display:block;">
+                        <div class="ai-project-card relative rounded-lg overflow-hidden" style="min-height:340px;">
+                            <!-- Grid lines decoration -->
+                            <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(245,158,11,.04) 39px,rgba(245,158,11,.04) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(245,158,11,.04) 39px,rgba(245,158,11,.04) 40px);pointer-events:none;"></div>
+
+                            <!-- Ambient glow blobs -->
+                            <div style="position:absolute;width:350px;height:350px;right:8%;top:50%;transform:translateY(-50%);background:radial-gradient(circle,rgba(245,158,11,.1),transparent 70%);pointer-events:none;"></div>
+                            <div style="position:absolute;width:250px;height:250px;left:3%;bottom:0;background:radial-gradient(circle,rgba(239,68,68,.08),transparent 70%);pointer-events:none;"></div>
+
+                            <!-- corner brackets -->
+                            <div class="corner-ai corner-ai-tl"></div>
+                            <div class="corner-ai corner-ai-tr"></div>
+                            <div class="corner-ai corner-ai-bl"></div>
+                            <div class="corner-ai corner-ai-br"></div>
+
+                            <div class="absolute inset-0 flex flex-col md:flex-row items-center gap-10 p-10 md:p-14 z-10">
+                                <!-- LEFT: text -->
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-4">
+                                        <div class="ai-badge">⬡ Generative AI</div>
+                                        <span style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;letter-spacing:.1em;text-transform:uppercase;">2024</span>
+                                    </div>
+                                    <h4 class="text-3xl md:text-5xl font-black tracking-tight leading-none mb-4">
+                                        DINOGEN<br><span style="color:#f59e0b;">AI</span>
+                                    </h4>
+                                    <p class="text-gray-400 text-sm md:text-base max-w-sm mb-6">
+                                        生成AIを活用したインタラクティブ恐竜体験プラットフォーム。ユーザーの問いかけに応じてダイナミックなコンテンツを生成し、自然言語でディノジェネシスの世界を探索できます。
+                                    </p>
+                                    <div class="flex flex-wrap gap-2 mb-8">
+                                        <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">Generative AI</span>
+                                        <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">NLP</span>
+                                        <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">Real-time</span>
+                                        <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">Interactive</span>
+                                    </div>
+                                    <span
+                                        class="inline-flex items-center gap-3 px-7 py-3.5 font-bold text-sm rounded-sm"
+                                        style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#000;transition:transform .2s,box-shadow .2s;display:inline-flex;"
+                                        onmouseover="this.style.transform='scale(1.04)';this.style.boxShadow='0 0 30px rgba(245,158,11,.4)'"
+                                        onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none'"
+                                    >
+                                        <span class="ai-pulse-dot"></span>
+                                        LAUNCH DINOGEN AI
+                                    </span>
+                                </div>
+
+                                <!-- RIGHT: AI visual -->
+                                <div class="flex-shrink-0 relative" style="width:clamp(160px,28vw,260px); height:clamp(160px,28vw,260px);">
+                                    <div style="position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(245,158,11,.25);animation:float 5s ease-in-out infinite;animation-delay:-2s;"></div>
+                                    <div style="position:absolute;inset:12px;border-radius:50%;border:1px solid rgba(245,158,11,.1);"></div>
+                                    <!-- AI Brain / Neural network SVG -->
+                                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:relative;z-index:1;filter:drop-shadow(0 0 20px rgba(245,158,11,.4))">
+                                        <g fill="none" stroke="#f59e0b" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9">
+                                            <!-- Neural network nodes -->
+                                            <circle cx="100" cy="50"  r="8" fill="rgba(245,158,11,.15)" />
+                                            <circle cx="60"  cy="90"  r="7" fill="rgba(245,158,11,.15)" />
+                                            <circle cx="140" cy="90"  r="7" fill="rgba(245,158,11,.15)" />
+                                            <circle cx="75"  cy="135" r="7" fill="rgba(245,158,11,.15)" />
+                                            <circle cx="125" cy="135" r="7" fill="rgba(245,158,11,.15)" />
+                                            <circle cx="100" cy="160" r="8" fill="rgba(245,158,11,.2)" />
+                                            <!-- Hidden layer nodes -->
+                                            <circle cx="85"  cy="100" r="5" fill="rgba(239,68,68,.2)" stroke="#ef4444" />
+                                            <circle cx="115" cy="100" r="5" fill="rgba(239,68,68,.2)" stroke="#ef4444" />
+                                            <circle cx="100" cy="115" r="5" fill="rgba(239,68,68,.2)" stroke="#ef4444" />
+                                            <!-- Connections -->
+                                            <line x1="100" y1="58"  x2="60"  y2="83"  opacity="0.4" />
+                                            <line x1="100" y1="58"  x2="140" y2="83"  opacity="0.4" />
+                                            <line x1="100" y1="58"  x2="85"  y2="95"  opacity="0.3" />
+                                            <line x1="100" y1="58"  x2="115" y2="95"  opacity="0.3" />
+                                            <line x1="60"  y1="97"  x2="85"  y2="95"  opacity="0.4" />
+                                            <line x1="60"  y1="97"  x2="100" y2="110" opacity="0.3" />
+                                            <line x1="140" y1="97"  x2="115" y2="95"  opacity="0.4" />
+                                            <line x1="140" y1="97"  x2="100" y2="110" opacity="0.3" />
+                                            <line x1="85"  y1="105" x2="75"  y2="128" opacity="0.4" />
+                                            <line x1="85"  y1="105" x2="100" y2="152" opacity="0.3" />
+                                            <line x1="115" y1="105" x2="125" y2="128" opacity="0.4" />
+                                            <line x1="115" y1="105" x2="100" y2="152" opacity="0.3" />
+                                            <line x1="100" y1="120" x2="75"  y2="128" opacity="0.3" />
+                                            <line x1="100" y1="120" x2="125" y2="128" opacity="0.3" />
+                                            <line x1="100" y1="120" x2="100" y2="152" opacity="0.5" />
+                                            <line x1="75"  y1="142" x2="100" y2="152" opacity="0.4" />
+                                            <line x1="125" y1="142" x2="100" y2="152" opacity="0.4" />
+                                            <!-- Outer ring detail -->
+                                            <circle cx="100" cy="100" r="55" stroke-dasharray="4 6" opacity="0.2" />
+                                            <circle cx="100" cy="100" r="70" stroke-dasharray="2 8" opacity="0.1" />
+                                        </g>
+                                    </svg>
+                                    <div style="position:absolute;inset:20%;border-radius:50%;border:1px solid rgba(245,158,11,.3);animation:pulseRing 2.4s ease-out infinite;pointer-events:none;animation-delay:.5s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </article>
+
             </div>
         </div>
     </section>
@@ -455,12 +572,10 @@
          AR SERVICE SECTION
     ══════════════════════════════════════════ -->
     <section id="ar" class="py-32 relative z-10 overflow-hidden">
-        <!-- background grid -->
         <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(34,211,238,.03) 59px,rgba(34,211,238,.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(34,211,238,.03) 59px,rgba(34,211,238,.03) 60px);pointer-events:none;"></div>
         <div style="position:absolute;width:600px;height:600px;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(34,211,238,.05),transparent 70%);pointer-events:none;"></div>
 
         <div class="container mx-auto px-4 relative z-10">
-            <!-- header -->
             <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                 <div>
                     <div class="ar-badge mb-4">⬡ Augmented Reality</div>
@@ -473,7 +588,6 @@
                 </p>
             </div>
 
-            <!-- AR use-case cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
                 <div class="rounded-lg p-8" style="border:1px solid rgba(34,211,238,.15);background:rgba(34,211,238,.03);">
                     <div style="font-size:32px;margin-bottom:16px;">🦕</div>
@@ -495,7 +609,6 @@
                 </div>
             </div>
 
-            <!-- Tech stack -->
             <div class="glass rounded-lg p-8 md:p-12">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
                     <div>
@@ -539,7 +652,7 @@
     <section id="services" class="py-32 glass">
         <div class="container mx-auto px-4">
             <h3 class="sr-only">Our Services</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-12">
                 <div class="space-y-4">
                     <div class="text-4xl font-bold text-cyan-400">01</div>
                     <h5 class="text-xl font-bold uppercase tracking-widest">Strategy</h5>
@@ -562,6 +675,14 @@
                         <span style="font-size:8px;background:linear-gradient(135deg,#22d3ee,#8b5cf6);color:#000;padding:2px 6px;border-radius:3px;font-weight:800;-webkit-text-fill-color:initial;">NEW</span>
                     </h5>
                     <p class="text-gray-400">拡張現実で現実空間とデジタルを融合。博物館・小売・イベント向けWebARコンテンツをアプリ不要で届けます。</p>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-4xl font-bold" style="background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">05</div>
+                    <h5 class="text-xl font-bold uppercase tracking-widest flex items-center gap-2">
+                        <a href="index2.html" class="hover:text-amber-400 transition-colors">DINOGEN AI</a>
+                        <span style="font-size:8px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#000;padding:2px 6px;border-radius:3px;font-weight:800;-webkit-text-fill-color:initial;">AI</span>
+                    </h5>
+                    <p class="text-gray-400">生成AIを活用したインタラクティブ恐竜体験。自然言語でダイナミックなコンテンツを生成し、次世代のデジタル体験を提供します。</p>
                 </div>
             </div>
         </div>
@@ -644,26 +765,22 @@
         const clawMat  = mat(0x3a3028, 0x0a0905, 0.5);
         const nailMat  = mat(0x251f18, 0x050400, 0.3);
 
-        // ── Torso ──
         const torsoGeo = new THREE.SphereGeometry(1, 14, 10);
         torsoGeo.scale(1.3, 0.9, 0.9);
         const torso = addMesh(torsoGeo, skinMat);
 
-        // ── Chest / belly ──
         const bellyGeo = new THREE.SphereGeometry(0.85, 10, 8);
         bellyGeo.scale(1.1, 1, 0.75);
         const belly = new THREE.Mesh(bellyGeo, mat(0x3a7048, 0x0f2a1a));
         belly.position.set(0, -0.05, 0.55);
         torso.add(belly);
 
-        // ── Neck ──
         const neckGeo = new THREE.CylinderGeometry(0.38, 0.52, 1.1, 10);
         const neck = new THREE.Mesh(neckGeo, skinMat);
         neck.position.set(0.7, 0.55, 0);
         neck.rotation.z = -Math.PI * 0.12;
         torso.add(neck);
 
-        // ── Head ──
         const headGroup = new THREE.Group();
         headGroup.position.set(1.55, 1.0, 0);
         torso.add(headGroup);
@@ -672,20 +789,17 @@
         crainGeo.scale(1.5, 1, 0.9);
         addMesh(crainGeo, skinMat, headGroup);
 
-        // upper jaw
         const ujGeo = new THREE.BoxGeometry(1.2, 0.22, 0.5);
         const uj = new THREE.Mesh(ujGeo, skinMat);
         uj.position.set(0.5, -0.12, 0);
         headGroup.add(uj);
 
-        // lower jaw (animated)
         const ljGroup = new THREE.Group();
         ljGroup.position.set(-0.1, -0.18, 0);
         headGroup.add(ljGroup);
         const ljGeo = new THREE.BoxGeometry(1.0, 0.16, 0.42);
         addMesh(ljGeo, darkMat, ljGroup);
 
-        // teeth (upper)
         for (let i = 0; i < 6; i++) {
             const tGeo = new THREE.ConeGeometry(0.04, 0.14, 4);
             const t = new THREE.Mesh(tGeo, toothMat);
@@ -693,7 +807,6 @@
             t.rotation.x = Math.PI;
             headGroup.add(t);
         }
-        // teeth (lower)
         for (let i = 0; i < 5; i++) {
             const tGeo = new THREE.ConeGeometry(0.035, 0.12, 4);
             const t = new THREE.Mesh(tGeo, toothMat);
@@ -701,19 +814,16 @@
             ljGroup.add(t);
         }
 
-        // eyes
         const eyeGeo = new THREE.SphereGeometry(0.09, 8, 8);
         for (const sx of [1, -1]) {
             const eye = new THREE.Mesh(eyeGeo, eyeMat);
             eye.position.set(0.35, 0.18, sx * 0.36);
             headGroup.add(eye);
-            // pupil
             const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), new THREE.MeshStandardMaterial({ color: 0x000000 }));
             pupil.position.set(0.07, 0, 0);
             eye.add(pupil);
         }
 
-        // brow ridges
         const browGeo = new THREE.BoxGeometry(0.25, 0.08, 0.18);
         for (const sz of [0.32, -0.32]) {
             const brow = new THREE.Mesh(browGeo, darkMat);
@@ -722,26 +832,20 @@
             headGroup.add(brow);
         }
 
-        // nostril bumps
         for (const sz of [0.12, -0.12]) {
             const n = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), darkMat);
             n.position.set(0.72, 0.06, sz);
             headGroup.add(n);
         }
 
-        // ── Tail ──
         const tailGroup = new THREE.Group();
         tailGroup.position.set(-1.2, -0.2, 0);
         torso.add(tailGroup);
         const segments = [
-            [0.42, 0.78, 0, 0, 0.08],
-            [0.32, 0.6, 0, 0.05, 0.12],
-            [0.22, 0.5, 0, 0.08, 0.15],
-            [0.14, 0.38, 0, 0.1, 0.18],
-            [0.08, 0.28, 0, 0.08, 0.15],
+            [0.42, 0.78],[0.32, 0.6],[0.22, 0.5],[0.14, 0.38],[0.08, 0.28],
         ];
         let tx = 0;
-        for (const [r1, r2, , , ] of segments) {
+        for (const [r1, r2] of segments) {
             const seg = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, 0.65, 8), skinMat);
             seg.rotation.z = Math.PI * 0.5;
             seg.position.x = tx - 0.3;
@@ -749,7 +853,6 @@
             tx -= 0.5;
         }
 
-        // ── Arms (tiny!) ──
         for (const sx of [1, -1]) {
             const armGrp = new THREE.Group();
             armGrp.position.set(0.8, 0.35, sx * 0.85);
@@ -762,7 +865,6 @@
             lower.position.set(0, -0.38, 0.2);
             lower.rotation.x = 0.7;
             upper.add(lower);
-            // two tiny claws
             for (let c = 0; c < 2; c++) {
                 const claw = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.14, 5), clawMat);
                 claw.position.set((c - 0.5) * 0.12, -0.22, 0.08);
@@ -771,38 +873,27 @@
             }
         }
 
-        // ── Legs ──
         const legData = [
-            { side: 1,  xOff: -0.3, zOff:  0.65 },
-            { side: -1, xOff: -0.3, zOff: -0.65 },
+            { xOff: -0.3, zOff:  0.65 },
+            { xOff: -0.3, zOff: -0.65 },
         ];
         for (const { xOff, zOff } of legData) {
             const legGrp = new THREE.Group();
             legGrp.position.set(xOff, -0.85, zOff);
             torso.add(legGrp);
-
-            // upper leg
             const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.9, 10), skinMat);
             upper.position.y = -0.45;
             legGrp.add(upper);
-
-            // knee
             const knee = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), skinMat);
             knee.position.y = -0.9;
             legGrp.add(knee);
-
-            // lower leg
             const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.14, 0.85, 10), skinMat);
             lower.position.y = -1.35;
             lower.rotation.x = 0.35;
             legGrp.add(lower);
-
-            // foot
             const foot = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.18, 0.42), darkMat);
             foot.position.set(0.18, -1.8, 0);
             legGrp.add(foot);
-
-            // three toe claws
             for (let t = 0; t < 3; t++) {
                 const claw = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.22, 5), nailMat);
                 claw.rotation.x = -Math.PI * 0.5;
@@ -811,7 +902,6 @@
             }
         }
 
-        // ── Spine ridge ──
         for (let i = 0; i < 10; i++) {
             const spike = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18 - i * 0.01, 4), darkMat);
             spike.position.set(-0.8 + i * 0.22, 0.88, 0);
@@ -841,33 +931,26 @@
         camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
         camera.position.set(0, 1.5, 8);
 
-        // lights
         const ambient = new THREE.AmbientLight(0x223344, 0.8);
         scene.add(ambient);
-
         const key = new THREE.DirectionalLight(0x66ffee, 2.5);
         key.position.set(5, 8, 4);
         key.castShadow = true;
         scene.add(key);
-
         const fill = new THREE.DirectionalLight(0x8866ff, 0.8);
         fill.position.set(-6, 2, -3);
         scene.add(fill);
-
         const rim = new THREE.DirectionalLight(0x00ffcc, 1.2);
         rim.position.set(0, 5, -8);
         scene.add(rim);
-
         const ground = new THREE.PointLight(0x22ffaa, 0.5, 10);
         ground.position.set(0, -3, 0);
         scene.add(ground);
 
-        // floor grid
         const gridHelper = new THREE.GridHelper(12, 24, 0x22d3ee44, 0x22d3ee11);
         gridHelper.position.y = -2.3;
         scene.add(gridHelper);
 
-        // floor shadow plane
         const floorGeo = new THREE.PlaneGeometry(12, 12);
         const floorMat = new THREE.ShadowMaterial({ opacity: 0.4 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
@@ -881,7 +964,6 @@
         trexGroup.castShadow = true;
         scene.add(trexGroup);
 
-        // mouse/touch drag
         canvas.addEventListener('mousedown',  e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
         canvas.addEventListener('mousemove',  e => {
             if (!isDragging) return;
@@ -892,7 +974,7 @@
         });
         canvas.addEventListener('mouseup',   () => isDragging = false);
         canvas.addEventListener('mouseleave',() => isDragging = false);
-        // pinch/touch
+
         let lastTouchDist = null;
         canvas.addEventListener('touchstart', e => {
             if (e.touches.length === 1) { isDragging = true; prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }
@@ -935,7 +1017,6 @@
             torso.rotation.z   = Math.sin(t * 5) * 0.06;
             headGroup.rotation.x = Math.sin(t * 3) * 0.15 - 0.1;
             tailGroup.rotation.y = Math.sin(t * 4) * 0.15;
-            // jaw opens on roar
             ljGroup.rotation.x = (Math.sin(t * 3) * 0.5 + 0.5) * 0.5;
         } else if (currentAnim === 'walk') {
             torso.position.y   = Math.abs(Math.sin(t * 3)) * 0.12 - 0.06;
@@ -952,7 +1033,6 @@
         const dt = Math.min((now - (renderLoop._last || now)) / 1000, 0.05);
         renderLoop._last = now;
 
-        // FPS
         fpsCounter++;
         if (now - fpsLast > 800) {
             document.getElementById('hud-br').textContent = 'FPS: ' + Math.round(fpsCounter / ((now - fpsLast) / 1000));
@@ -974,7 +1054,6 @@
         animTime = 0;
     }
 
-    // ── AR Modal open/close ──
     document.getElementById('open-ar-btn').addEventListener('click', () => {
         document.getElementById('ar-modal').classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -993,7 +1072,6 @@
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-    // ── Animation buttons ──
     const animBtns = document.querySelectorAll('.ar-ctrl-btn');
     function setAnim(name) {
         currentAnim = name;
