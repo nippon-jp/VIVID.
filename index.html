@@ -3,7 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivid Design Concept</title>
+    
+    <!-- SEO Basic Tags -->
+    <title>VIVID. | デジタルエクスペリエンス制作・ブランドデザインスタジオ</title>
+    <meta name="description" content="VIVID.は、境界を超えるデザインと最新テクノロジーを融合させ、記憶に残るデジタル体験を創造する制作スタジオです。ブランディングからWeb制作、UI/UXデザインまで幅広く対応。">
+    <meta name="keywords" content="Webデザイン, ブランディング, UI/UX, デジタルマーケティング, 東京 デザインスタジオ, VIVID">
+    <link rel="canonical" href="https://example.com/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.PNG">
+    <link rel="apple-touch-icon" href="favicon.PNG">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://example.com/">
+    <meta property="og:title" content="VIVID. | デジタルエクスペリエンス制作スタジオ">
+    <meta property="og:description" content="鮮烈な第一印象から始まる、新しいブランド体験を。VIVID.のポートフォリオをご覧ください。">
+    <meta property="og:image" content="favicon.PNG">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VIVID. | デジタルエクスペリエンス制作スタジオ">
+    <meta name="twitter:description" content="境界を超えるデザイン。鮮烈な第一印象から始まる、新しいブランド体験を。">
+    <meta name="twitter:image" content="favicon.PNG">
+
+    <!-- Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "VIVID.",
+      "url": "https://example.com/",
+      "description": "デジタルエクスペリエンス制作・ブランドデザインスタジオ",
+      "publisher": {
+        "@type": "Organization",
+        "name": "VIVID. Studio",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://example.com/favicon.PNG"
+        }
+      }
+    }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -57,16 +99,18 @@
     </style>
 </head>
 <body>
-    <div id="cursor-follower"></div>
+    <div id="cursor-follower" aria-hidden="true"></div>
 
     <!-- Navigation -->
     <nav class="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center glass">
-        <div class="text-2xl font-black tracking-tighter">VIVID.</div>
+        <div class="text-2xl font-black tracking-tighter flex items-center gap-2">
+            <img src="favicon.PNG" alt="VIVID. Logo" class="w-8 h-8 rounded-sm">
+            <span>VIVID.</span>
+        </div>
         <div class="hidden md:flex space-x-8 text-sm font-medium tracking-widest uppercase">
-            <a href="#" class="hover:text-cyan-400 transition-colors">Work</a>
-            <a href="#" class="hover:text-cyan-400 transition-colors">About</a>
-            <a href="#" class="hover:text-cyan-400 transition-colors">Services</a>
-            <a href="#" class="hover:text-cyan-400 transition-colors">Contact</a>
+            <a href="#work" class="hover:text-cyan-400 transition-colors">Work</a>
+            <a href="#services" class="hover:text-cyan-400 transition-colors">Services</a>
+            <a href="#contact" class="hover:text-cyan-400 transition-colors">Contact</a>
         </div>
         <button class="bg-white text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-cyan-400 transition-all">START A PROJECT</button>
     </nav>
@@ -89,18 +133,18 @@
                 <a href="#work" class="group relative px-8 py-4 bg-cyan-500 text-black font-bold rounded-sm overflow-hidden transition-all hover:scale-105">
                     <span class="relative z-10">VIEW OUR WORK</span>
                 </a>
-                <a href="#about" class="px-8 py-4 border border-white/20 hover:border-white transition-all rounded-sm font-bold">
-                    OUR STORY
+                <a href="#services" class="px-8 py-4 border border-white/20 hover:border-white transition-all rounded-sm font-bold">
+                    OUR SERVICES
                 </a>
             </div>
         </div>
 
-        <!-- Floating Elements -->
-        <div class="absolute top-1/4 left-10 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] animate-float"></div>
-        <div class="absolute bottom-1/4 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] animate-float" style="animation-delay: -3s"></div>
+        <!-- Decorative Elements -->
+        <div class="absolute top-1/4 left-10 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] animate-float" aria-hidden="true"></div>
+        <div class="absolute bottom-1/4 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] animate-float" style="animation-delay: -3s" aria-hidden="true"></div>
     </header>
 
-    <!-- Content Section -->
+    <!-- Portfolio Section -->
     <section id="work" class="py-32 relative z-10">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
@@ -114,12 +158,12 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Project 1 -->
-                <div class="group cursor-pointer">
+                <article class="group cursor-pointer">
                     <div class="relative aspect-video overflow-hidden rounded-lg bg-zinc-900 border border-white/5">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
                         <div class="absolute inset-0 flex items-center justify-center">
                            <div class="w-16 h-16 border border-white/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span class="text-2xl">→</span>
+                                <span class="text-2xl" aria-hidden="true">→</span>
                            </div>
                         </div>
                         <div class="absolute bottom-0 left-0 p-8">
@@ -127,15 +171,15 @@
                             <h4 class="text-2xl font-bold mt-2">NEON OASIS 2024</h4>
                         </div>
                     </div>
-                </div>
+                </article>
 
                 <!-- Project 2 -->
-                <div class="group cursor-pointer mt-0 md:mt-24">
+                <article class="group cursor-pointer mt-0 md:mt-24">
                     <div class="relative aspect-[4/5] overflow-hidden rounded-lg bg-zinc-900 border border-white/5">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
                         <div class="absolute inset-0 flex items-center justify-center">
                            <div class="w-16 h-16 border border-white/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span class="text-2xl">→</span>
+                                <span class="text-2xl" aria-hidden="true">→</span>
                            </div>
                         </div>
                         <div class="absolute bottom-0 left-0 p-8">
@@ -143,14 +187,15 @@
                             <h4 class="text-2xl font-bold mt-2">CYBER FLOW INTERFACE</h4>
                         </div>
                     </div>
-                </div>
+                </article>
             </div>
         </div>
     </section>
 
-    <!-- Services -->
-    <section class="py-32 glass">
+    <!-- Services Section -->
+    <section id="services" class="py-32 glass">
         <div class="container mx-auto px-4">
+            <h3 class="sr-only">Our Services</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
                 <div class="space-y-4">
                     <div class="text-4xl font-bold text-cyan-400">01</div>
@@ -171,8 +216,8 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="py-20 border-t border-white/10">
+    <!-- Footer / Contact -->
+    <footer id="contact" class="py-20 border-t border-white/10">
         <div class="container mx-auto px-4 text-center">
             <h2 class="text-4xl md:text-7xl font-black mb-12 tracking-tighter">LET'S TALK.</h2>
             <a href="mailto:hello@example.com" class="text-xl md:text-2xl text-cyan-400 hover:underline">hello@vivid-design.studio</a>
@@ -193,11 +238,8 @@
             follower.style.top = e.clientY + 'px';
         });
 
-        // Simple Intersection Observer for scroll reveal
-        const observerOptions = {
-            threshold: 0.1
-        };
-
+        // Scroll reveal logic
+        const observerOptions = { threshold: 0.1 };
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -207,18 +249,18 @@
             });
         }, observerOptions);
 
-        document.querySelectorAll('section, .group').forEach(el => {
+        document.querySelectorAll('section, article, .group').forEach(el => {
             el.classList.add('transition-all', 'duration-1000', 'translate-y-10', 'opacity-0');
             observer.observe(el);
         });
 
-        // Handle navigation glass effect on scroll
+        // Navigation visual changes
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('nav');
             if (window.scrollY > 50) {
                 nav.style.paddingTop = '1rem';
                 nav.style.paddingBottom = '1rem';
-                nav.style.backgroundColor = 'rgba(5, 5, 5, 0.8)';
+                nav.style.backgroundColor = 'rgba(5, 5, 5, 0.9)';
             } else {
                 nav.style.paddingTop = '1.5rem';
                 nav.style.paddingBottom = '1.5rem';
