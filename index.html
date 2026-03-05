@@ -4,30 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- SEO Basic Tags -->
     <title>VIVID. | デジタルエクスペリエンス制作・ブランドデザインスタジオ</title>
-    <meta name="description" content="VIVID.は、境界を超えるデザインと最新テクノロジーを融合させ、記憶に残るデジタル体験を創造する制作スタジオです。ブランディングからWeb制作、UI/UXデザインまで幅広く対応。">
-    <meta name="keywords" content="Webデザイン, ブランディング, UI/UX, デジタルマーケティング, 東京 デザインスタジオ, VIVID">
+    <meta name="description" content="VIVID.は、境界を超えるデザインと最新テクノロジーを融合させ、記憶に残るデジタル体験を創造する制作スタジオです。ARコンテンツ・ブランディングからWeb制作、UI/UXデザインまで幅広く対応。">
+    <meta name="keywords" content="Webデザイン, ブランディング, UI/UX, AR, 拡張現実, デジタルマーケティング, 東京 デザインスタジオ, VIVID">
     <link rel="canonical" href="https://example.com/">
 
-    <!-- Favicon (Browser Level) -->
     <link rel="icon" type="image/png" href="favicon.PNG">
     <link rel="apple-touch-icon" href="favicon.PNG">
 
-    <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://example.com/">
     <meta property="og:title" content="VIVID. | デジタルエクスペリエンス制作スタジオ">
     <meta property="og:description" content="鮮烈な第一印象から始まる、新しいブランド体験を。VIVID.のポートフォリオをご覧ください。">
     <meta property="og:image" content="favicon.PNG">
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="VIVID. | デジタルエクスペリエンス制作スタジオ">
     <meta name="twitter:description" content="境界を超えるデザイン。鮮烈な第一印象から始まる、新しいブランド体験を。">
     <meta name="twitter:image" content="favicon.PNG">
 
-    <!-- Structured Data (JSON-LD) for SEO -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -38,16 +33,15 @@
       "publisher": {
         "@type": "Organization",
         "name": "VIVID. Studio",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://example.com/favicon.PNG"
-        }
+        "logo": { "@type": "ImageObject", "url": "https://example.com/favicon.PNG" }
       }
     }
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -55,53 +49,226 @@
             color: #ffffff;
             overflow-x: hidden;
         }
-
         .hero-gradient {
             background: radial-gradient(circle at 50% 50%, #22d3ee22 0%, #050505 70%);
         }
-
         .text-outline {
-            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+            -webkit-text-stroke: 1px rgba(255,255,255,0.3);
             color: transparent;
         }
-
         .glass {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255,255,255,0.03);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-
         .animate-float {
             animation: float 6s ease-in-out infinite;
         }
-
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            0%,100% { transform: translateY(0px); }
+            50%      { transform: translateY(-20px); }
         }
-
         #cursor-follower {
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(34,211,238,0.15) 0%, transparent 70%);
             border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 0;
-            transform: translate(-50%, -50%);
-            transition: width 0.3s, height 0.3s;
+            position: fixed; pointer-events: none; z-index: 0;
+            transform: translate(-50%,-50%);
+            transition: width .3s, height .3s;
+        }
+        .reveal-text {
+            clip-path: polygon(0 0,100% 0,100% 100%,0% 100%);
+            transition: transform 1s cubic-bezier(.16,1,.3,1);
+        }
+        @keyframes fadeIn {
+            from { opacity:0; transform:translateY(20px); }
+            to   { opacity:1; transform:translateY(0); }
         }
 
-        .reveal-text {
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        /* ─── AR Badge ─── */
+        .ar-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            padding: 4px 12px; border-radius: 999px;
+            font-size: 10px; font-weight: 800; letter-spacing: .12em;
+            text-transform: uppercase; color: #000;
         }
+
+        /* ─── AR Modal Overlay ─── */
+        #ar-modal {
+            display: none;
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,.92);
+            backdrop-filter: blur(12px);
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        #ar-modal.open { display: flex; }
+        #ar-canvas-wrap {
+            position: relative;
+            width: min(780px, 95vw);
+            height: min(540px, 70vh);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(34,211,238,.3);
+            box-shadow: 0 0 80px rgba(34,211,238,.15), 0 0 200px rgba(139,92,246,.1);
+        }
+        #ar-canvas { width: 100%; height: 100%; display: block; }
+        #ar-canvas-bg {
+            position: absolute; inset: 0;
+            background:
+                repeating-linear-gradient(0deg,   transparent, transparent 39px, rgba(34,211,238,.06) 39px, rgba(34,211,238,.06) 40px),
+                repeating-linear-gradient(90deg,  transparent, transparent 39px, rgba(34,211,238,.06) 39px, rgba(34,211,238,.06) 40px),
+                radial-gradient(ellipse at 50% 100%, rgba(34,211,238,.12) 0%, transparent 60%),
+                #060a10;
+            pointer-events: none; z-index: 0;
+        }
+        #three-canvas { position: absolute; inset: 0; z-index: 1; width: 100%!important; height: 100%!important; }
+
+        /* HUD */
+        .hud-label {
+            position: absolute; z-index: 2; font-size: 9px; font-weight: 700;
+            letter-spacing: .15em; text-transform: uppercase; color: rgba(34,211,238,.6);
+        }
+        #hud-tl { top: 14px; left: 18px; }
+        #hud-tr { top: 14px; right: 18px; text-align: right; }
+        #hud-bl { bottom: 14px; left: 18px; }
+        #hud-br { bottom: 14px; right: 18px; text-align: right; }
+        .hud-crosshair {
+            position: absolute; z-index: 2;
+            top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 40px; height: 40px;
+            border: 1px solid rgba(34,211,238,.4); border-radius: 50%;
+        }
+        .hud-crosshair::before, .hud-crosshair::after {
+            content: ''; position: absolute; background: rgba(34,211,238,.4);
+        }
+        .hud-crosshair::before { width: 1px; height: 12px; top: -6px; left: 50%; transform: translateX(-50%); }
+        .hud-crosshair::after  { width: 12px; height: 1px; left: -6px; top: 50%; transform: translateY(-50%); }
+
+        /* Control buttons */
+        #ar-controls {
+            display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; justify-content: center;
+        }
+        .ar-ctrl-btn {
+            padding: 8px 20px;
+            border: 1px solid rgba(34,211,238,.4);
+            border-radius: 4px;
+            font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+            color: rgba(34,211,238,.9);
+            background: rgba(34,211,238,.05);
+            cursor: pointer; transition: all .2s;
+        }
+        .ar-ctrl-btn:hover { background: rgba(34,211,238,.15); border-color: #22d3ee; color: #fff; }
+        .ar-ctrl-btn.active { background: rgba(34,211,238,.25); border-color: #22d3ee; color: #fff; }
+
+        #ar-close-btn {
+            position: absolute; top: 24px; right: 24px;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
+            color: #fff; font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .2s; z-index: 10;
+        }
+        #ar-close-btn:hover { background: rgba(255,255,255,.15); }
+
+        /* AR info panel */
+        #ar-info-panel {
+            margin-top: 16px; text-align: center;
+            width: min(780px, 95vw);
+        }
+
+        /* scan line animation */
+        @keyframes scanline {
+            0%   { top: -4px; }
+            100% { top: 100%; }
+        }
+        .scan-line {
+            position: absolute; left: 0; width: 100%; height: 3px; z-index: 3;
+            background: linear-gradient(to bottom, transparent, rgba(34,211,238,.5), transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        /* pulse ring on T-Rex shadow */
+        @keyframes pulseRing {
+            0%   { transform: scale(.8); opacity: .6; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* AR project card special styles */
+        .ar-project-card {
+            border: 1px solid rgba(34,211,238,.2);
+            background: linear-gradient(135deg, rgba(34,211,238,.04) 0%, rgba(139,92,246,.04) 100%);
+            position: relative; overflow: hidden;
+        }
+        .ar-project-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(34,211,238,.06), transparent 50%);
+            pointer-events: none;
+        }
+        .ar-project-card:hover { border-color: rgba(34,211,238,.5); }
+
+        /* Scan frame corners */
+        .corner { position: absolute; width: 18px; height: 18px; z-index: 2; }
+        .corner-tl { top: 10px; left: 10px; border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
+        .corner-tr { top: 10px; right: 10px; border-top: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
+        .corner-bl { bottom: 10px; left: 10px; border-bottom: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
+        .corner-br { bottom: 10px; right: 10px; border-bottom: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
     </style>
 </head>
 <body>
     <div id="cursor-follower" aria-hidden="true"></div>
 
-    <!-- Navigation -->
+    <!-- ══════════════════════════════════════════
+         AR MODAL
+    ══════════════════════════════════════════ -->
+    <div id="ar-modal" role="dialog" aria-modal="true" aria-label="T-Rex AR体験">
+        <button id="ar-close-btn" aria-label="閉じる">✕</button>
+
+        <div style="text-align:center; margin-bottom:16px;">
+            <div class="ar-badge" style="font-size:11px;">⬡ AR EXPERIENCE</div>
+            <h2 style="font-size:clamp(20px,3vw,28px); font-weight:900; letter-spacing:-.02em; margin-top:10px;">
+                TYRANNOSAURUS REX <span style="color:#22d3ee;">— AR</span>
+            </h2>
+            <p style="color:rgba(255,255,255,.4); font-size:12px; margin-top:4px;">
+                ドラッグで回転 · スクロールでズーム
+            </p>
+        </div>
+
+        <div id="ar-canvas-wrap">
+            <div id="ar-canvas-bg"></div>
+            <div class="scan-line"></div>
+            <!-- corner brackets -->
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            <!-- HUD labels -->
+            <div class="hud-label" id="hud-tl">VIVID.AR // v2.4.1</div>
+            <div class="hud-label" id="hud-tr">SPECIMEN: T-REX<br>ERA: LATE CRETACEOUS</div>
+            <div class="hud-label" id="hud-bl">SCALE: 1:100 // HEIGHT: 5.8m</div>
+            <div class="hud-label" id="hud-br" id="hud-fps">FPS: --</div>
+            <div class="hud-crosshair"></div>
+            <!-- Three.js canvas injected here -->
+            <canvas id="three-canvas"></canvas>
+        </div>
+
+        <div id="ar-controls">
+            <button class="ar-ctrl-btn active" id="btn-idle">IDLE</button>
+            <button class="ar-ctrl-btn" id="btn-roar">ROAR</button>
+            <button class="ar-ctrl-btn" id="btn-walk">WALK</button>
+            <button class="ar-ctrl-btn" id="btn-auto">AUTO ROTATE</button>
+        </div>
+
+        <div id="ar-info-panel">
+            <p style="font-size:11px; color:rgba(255,255,255,.25); margin-top:8px;">
+                Powered by VIVID. WebAR Engine &nbsp;|&nbsp; Three.js r128
+            </p>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         NAVIGATION
+    ══════════════════════════════════════════ -->
     <nav class="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center glass">
         <div class="text-2xl font-black tracking-tighter">
             <span>VIVID.</span>
@@ -109,12 +276,17 @@
         <div class="hidden md:flex space-x-8 text-sm font-medium tracking-widest uppercase">
             <a href="#work" class="hover:text-cyan-400 transition-colors">Work</a>
             <a href="#services" class="hover:text-cyan-400 transition-colors">Services</a>
+            <a href="#ar" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
+                AR <span style="font-size:8px; background:#22d3ee; color:#000; padding:1px 5px; border-radius:3px; font-weight:800;">NEW</span>
+            </a>
             <a href="#contact" class="hover:text-cyan-400 transition-colors">Contact</a>
         </div>
         <button class="bg-white text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-cyan-400 transition-all">START A PROJECT</button>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
     <header class="relative min-h-screen flex items-center justify-center overflow-hidden hero-gradient pt-20">
         <div class="container mx-auto px-4 z-10 text-center">
             <h2 class="text-sm md:text-lg font-bold tracking-[0.5em] uppercase text-cyan-400 mb-4 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
@@ -137,13 +309,13 @@
                 </a>
             </div>
         </div>
-
-        <!-- Decorative Elements -->
         <div class="absolute top-1/4 left-10 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] animate-float" aria-hidden="true"></div>
-        <div class="absolute bottom-1/4 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] animate-float" style="animation-delay: -3s" aria-hidden="true"></div>
+        <div class="absolute bottom-1/4 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] animate-float" style="animation-delay:-3s" aria-hidden="true"></div>
     </header>
 
-    <!-- Portfolio Section -->
+    <!-- ══════════════════════════════════════════
+         PORTFOLIO
+    ══════════════════════════════════════════ -->
     <section id="work" class="py-32 relative z-10">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
@@ -187,15 +359,187 @@
                         </div>
                     </div>
                 </article>
+
+                <!-- Project 3 — T-Rex AR (full width) -->
+                <article class="group cursor-pointer md:col-span-2 mt-0 md:mt-8" id="trex-card">
+                    <div class="ar-project-card relative rounded-lg overflow-hidden" style="min-height:340px;">
+                        <!-- Grid lines decoration -->
+                        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(34,211,238,.04) 39px,rgba(34,211,238,.04) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(34,211,238,.04) 39px,rgba(34,211,238,.04) 40px);pointer-events:none;"></div>
+
+                        <!-- Ambient glow blobs -->
+                        <div style="position:absolute;width:300px;height:300px;right:10%;top:50%;transform:translateY(-50%);background:radial-gradient(circle,rgba(34,211,238,.12),transparent 70%);pointer-events:none;"></div>
+                        <div style="position:absolute;width:200px;height:200px;left:5%;bottom:0;background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%);pointer-events:none;"></div>
+
+                        <div class="absolute inset-0 flex flex-col md:flex-row items-center gap-10 p-10 md:p-14 z-10">
+                            <!-- LEFT: text -->
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="ar-badge">⬡ WebAR / 3D</div>
+                                    <span style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;letter-spacing:.1em;text-transform:uppercase;">2024</span>
+                                </div>
+                                <h4 class="text-3xl md:text-5xl font-black tracking-tight leading-none mb-4">
+                                    TYRANNOSAURUS<br><span style="color:#22d3ee;">REX AR</span>
+                                </h4>
+                                <p class="text-gray-400 text-sm md:text-base max-w-sm mb-6">
+                                    博物館向けWebARアプリ。スマートフォンのカメラを通し、実物大の白亜紀の王者をリアルワールドに召喚。骨格・筋肉・皮膚の3Dレイヤーを切り替え可能なインタラクティブ体験を提供。
+                                </p>
+                                <div class="flex flex-wrap gap-2 mb-8">
+                                    <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">Three.js</span>
+                                    <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">WebXR</span>
+                                    <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">GLTF 2.0</span>
+                                    <span style="font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;color:rgba(255,255,255,.5);">AR.js</span>
+                                </div>
+                                <button
+                                    id="open-ar-btn"
+                                    class="inline-flex items-center gap-3 px-7 py-3.5 font-bold text-sm rounded-sm"
+                                    style="background:linear-gradient(135deg,#06b6d4,#8b5cf6);color:#000;transition:transform .2s,box-shadow .2s;"
+                                    onmouseover="this.style.transform='scale(1.04)';this.style.boxShadow='0 0 30px rgba(34,211,238,.4)'"
+                                    onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none'"
+                                >
+                                    <span style="font-size:18px;">⬡</span>
+                                    LAUNCH AR EXPERIENCE
+                                </button>
+                            </div>
+
+                            <!-- RIGHT: preview thumbnail -->
+                            <div class="flex-shrink-0 relative" style="width:clamp(160px,28vw,260px); height:clamp(160px,28vw,260px);">
+                                <!-- Static T-Rex silhouette SVG -->
+                                <div style="position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(34,211,238,.25);animation:float 5s ease-in-out infinite;"></div>
+                                <div style="position:absolute;inset:12px;border-radius:50%;border:1px solid rgba(34,211,238,.1);"></div>
+                                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:relative;z-index:1;filter:drop-shadow(0 0 20px rgba(34,211,238,.4))">
+                                    <!-- T-Rex silhouette path -->
+                                    <g fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.9">
+                                        <!-- body -->
+                                        <path d="M80 120 Q70 110 65 95 Q60 80 70 70 Q80 60 95 62 Q110 64 115 75 Q120 88 115 100 Q110 112 100 118 Z" />
+                                        <!-- tail -->
+                                        <path d="M80 120 Q68 128 55 135 Q42 142 30 148 Q20 152 15 150" />
+                                        <!-- neck -->
+                                        <path d="M100 65 Q102 52 98 42 Q96 34 100 28" />
+                                        <!-- head -->
+                                        <path d="M98 28 Q88 22 82 24 Q74 26 72 32 Q70 38 76 42 Q84 44 92 40 Q100 36 98 28 Z" />
+                                        <!-- jaw -->
+                                        <path d="M72 32 Q65 34 60 36 Q75 44 82 44" />
+                                        <!-- eye -->
+                                        <circle cx="82" cy="29" r="2" fill="#22d3ee" />
+                                        <!-- front arm -->
+                                        <path d="M107 82 Q118 84 122 90 Q124 94 120 96 Q116 94 112 90" />
+                                        <path d="M120 96 Q122 100 118 102" />
+                                        <path d="M120 96 Q124 99 121 103" />
+                                        <!-- back leg left -->
+                                        <path d="M82 118 Q78 132 74 142 Q72 150 68 155 Q65 158 60 156" />
+                                        <path d="M68 155 Q63 160 58 158" />
+                                        <path d="M68 155 Q67 162 62 162" />
+                                        <!-- back leg right -->
+                                        <path d="M97 118 Q96 132 94 144 Q93 152 90 157 Q87 160 82 158" />
+                                        <path d="M90 157 Q85 162 80 160" />
+                                        <path d="M90 157 Q89 164 84 164" />
+                                        <!-- spine detail -->
+                                        <path d="M95 65 Q97 75 97 90 Q97 105 95 115" stroke-dasharray="3 3" opacity="0.4" />
+                                        <!-- rib detail -->
+                                        <path d="M88 75 Q100 78 108 80" opacity="0.3" />
+                                        <path d="M86 82 Q98 85 108 86" opacity="0.3" />
+                                        <path d="M84 89 Q96 92 106 92" opacity="0.3" />
+                                    </g>
+                                </svg>
+                                <!-- pulse ring -->
+                                <div style="position:absolute;inset:20%;border-radius:50%;border:1px solid rgba(34,211,238,.3);animation:pulseRing 2s ease-out infinite;pointer-events:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
             </div>
         </div>
     </section>
 
-    <!-- Services Section -->
+    <!-- ══════════════════════════════════════════
+         AR SERVICE SECTION
+    ══════════════════════════════════════════ -->
+    <section id="ar" class="py-32 relative z-10 overflow-hidden">
+        <!-- background grid -->
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(34,211,238,.03) 59px,rgba(34,211,238,.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(34,211,238,.03) 59px,rgba(34,211,238,.03) 60px);pointer-events:none;"></div>
+        <div style="position:absolute;width:600px;height:600px;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(34,211,238,.05),transparent 70%);pointer-events:none;"></div>
+
+        <div class="container mx-auto px-4 relative z-10">
+            <!-- header -->
+            <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+                <div>
+                    <div class="ar-badge mb-4">⬡ Augmented Reality</div>
+                    <h3 class="text-4xl md:text-6xl font-bold tracking-tight leading-none">
+                        WEB<span style="color:#22d3ee;">AR</span><br>SERVICES
+                    </h3>
+                </div>
+                <p class="text-gray-400 max-w-sm mb-2 text-sm md:text-base">
+                    カメラ越しに現実世界とデジタルコンテンツを重ね合わせる次世代体験。アプリ不要、ブラウザだけで実現するWebARソリューションを提供します。
+                </p>
+            </div>
+
+            <!-- AR use-case cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                <div class="rounded-lg p-8" style="border:1px solid rgba(34,211,238,.15);background:rgba(34,211,238,.03);">
+                    <div style="font-size:32px;margin-bottom:16px;">🦕</div>
+                    <div style="font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#22d3ee;margin-bottom:8px;">Museum / Education</div>
+                    <h5 class="text-lg font-bold mb-3">恐竜・生物 AR展示</h5>
+                    <p class="text-gray-400 text-sm">博物館・教育施設向け。絶滅動物や生物の実物大3Dモデルを展示空間に投影。解説・骨格・行動シミュレーションも統合。</p>
+                </div>
+                <div class="rounded-lg p-8" style="border:1px solid rgba(139,92,246,.15);background:rgba(139,92,246,.03);">
+                    <div style="font-size:32px;margin-bottom:16px;">🛋️</div>
+                    <div style="font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#8b5cf6;margin-bottom:8px;">Retail / EC</div>
+                    <h5 class="text-lg font-bold mb-3">商品AR試着・配置</h5>
+                    <p class="text-gray-400 text-sm">家具・ファッション・化粧品など、購入前に自分の空間やスタイルで試せるARショッピング体験を構築。CVR向上に貢献。</p>
+                </div>
+                <div class="rounded-lg p-8" style="border:1px solid rgba(249,115,22,.15);background:rgba(249,115,22,.03);">
+                    <div style="font-size:32px;margin-bottom:16px;">🎭</div>
+                    <div style="font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#f97316;margin-bottom:8px;">Event / Brand</div>
+                    <h5 class="text-lg font-bold mb-3">ARブランド体験</h5>
+                    <p class="text-gray-400 text-sm">製品発表・展示会・ポップアップイベントで強烈な印象を残す。QRコードを起点にしたゼロダウンロードのARキャンペーンを設計。</p>
+                </div>
+            </div>
+
+            <!-- Tech stack -->
+            <div class="glass rounded-lg p-8 md:p-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <h4 class="text-2xl md:text-3xl font-black mb-4">TECH STACK</h4>
+                        <p class="text-gray-400 text-sm mb-6">最新のWebXR標準に準拠し、iOS Safari・Android Chromeを含む主要ブラウザで動作するクロスプラットフォームARを実現します。</p>
+                        <div class="flex flex-wrap gap-3">
+                            <span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:5px 12px;font-weight:700;">WebXR Device API</span>
+                            <span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:5px 12px;font-weight:700;">Three.js / Babylon.js</span>
+                            <span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:5px 12px;font-weight:700;">8th Wall</span>
+                            <span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:5px 12px;font-weight:700;">AR.js</span>
+                            <span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:5px 12px;font-weight:700;">GLTF / glb 3D</span>
+                            <span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:5px 12px;font-weight:700;">Model Viewer</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="rounded-lg p-5 text-center" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+                            <div style="font-size:28px;font-weight:900;color:#22d3ee;">95%</div>
+                            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px;text-transform:uppercase;letter-spacing:.1em;">Browser Coverage</div>
+                        </div>
+                        <div class="rounded-lg p-5 text-center" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+                            <div style="font-size:28px;font-weight:900;color:#22d3ee;">0</div>
+                            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px;text-transform:uppercase;letter-spacing:.1em;">App Downloads</div>
+                        </div>
+                        <div class="rounded-lg p-5 text-center" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+                            <div style="font-size:28px;font-weight:900;color:#22d3ee;">60fps</div>
+                            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px;text-transform:uppercase;letter-spacing:.1em;">Target Performance</div>
+                        </div>
+                        <div class="rounded-lg p-5 text-center" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+                            <div style="font-size:28px;font-weight:900;color:#22d3ee;">3週間</div>
+                            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px;text-transform:uppercase;letter-spacing:.1em;">Avg. Delivery</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SERVICES
+    ══════════════════════════════════════════ -->
     <section id="services" class="py-32 glass">
         <div class="container mx-auto px-4">
             <h3 class="sr-only">Our Services</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
                 <div class="space-y-4">
                     <div class="text-4xl font-bold text-cyan-400">01</div>
                     <h5 class="text-xl font-bold uppercase tracking-widest">Strategy</h5>
@@ -211,15 +555,25 @@
                     <h5 class="text-xl font-bold uppercase tracking-widest">Development</h5>
                     <p class="text-gray-400">パフォーマンスと体験を両立させた高品質な実装を行います。</p>
                 </div>
+                <div class="space-y-4">
+                    <div class="text-4xl font-bold text-cyan-400" style="background:linear-gradient(135deg,#22d3ee,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">04</div>
+                    <h5 class="text-xl font-bold uppercase tracking-widest flex items-center gap-2">
+                        WebAR
+                        <span style="font-size:8px;background:linear-gradient(135deg,#22d3ee,#8b5cf6);color:#000;padding:2px 6px;border-radius:3px;font-weight:800;-webkit-text-fill-color:initial;">NEW</span>
+                    </h5>
+                    <p class="text-gray-400">拡張現実で現実空間とデジタルを融合。博物館・小売・イベント向けWebARコンテンツをアプリ不要で届けます。</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer / Contact -->
+    <!-- ══════════════════════════════════════════
+         FOOTER / CONTACT
+    ══════════════════════════════════════════ -->
     <footer id="contact" class="py-20 border-t border-white/10">
         <div class="container mx-auto px-4 text-center">
             <h2 class="text-4xl md:text-7xl font-black mb-12 tracking-tighter">LET'S TALK.</h2>
-            <a href="mailto:hello@example.com" class="text-xl md:text-2xl text-cyan-400 hover:underline">hello@vivid-design.studio</a>
+            <a href="mailto:hello@vivid-design.studio" class="text-xl md:text-2xl text-cyan-400 hover:underline">hello@vivid-design.studio</a>
             <div class="mt-20 flex justify-center space-x-8 text-xs font-bold tracking-widest uppercase text-gray-500">
                 <a href="#" class="hover:text-white transition-colors">Twitter</a>
                 <a href="#" class="hover:text-white transition-colors">Instagram</a>
@@ -229,49 +583,439 @@
         </div>
     </footer>
 
+    <!-- ══════════════════════════════════════════
+         SCRIPTS
+    ══════════════════════════════════════════ -->
     <script>
-        // Cursor Follower
-        const follower = document.getElementById('cursor-follower');
-        document.addEventListener('mousemove', (e) => {
-            follower.style.left = e.clientX + 'px';
-            follower.style.top = e.clientY + 'px';
-        });
+    // ── Cursor follower ──
+    const follower = document.getElementById('cursor-follower');
+    document.addEventListener('mousemove', e => {
+        follower.style.left = e.clientX + 'px';
+        follower.style.top  = e.clientY + 'px';
+    });
 
-        // Scroll reveal logic
-        const observerOptions = { threshold: 0.1 };
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('opacity-100');
-                    entry.target.classList.remove('translate-y-10');
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('section, article, .group').forEach(el => {
-            el.classList.add('transition-all', 'duration-1000', 'translate-y-10', 'opacity-0');
-            observer.observe(el);
-        });
-
-        // Navigation visual changes
-        window.addEventListener('scroll', () => {
-            const nav = document.querySelector('nav');
-            if (window.scrollY > 50) {
-                nav.style.paddingTop = '1rem';
-                nav.style.paddingBottom = '1rem';
-                nav.style.backgroundColor = 'rgba(5, 5, 5, 0.9)';
-            } else {
-                nav.style.paddingTop = '1.5rem';
-                nav.style.paddingBottom = '1.5rem';
-                nav.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+    // ── Scroll reveal ──
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('opacity-100');
+                entry.target.classList.remove('translate-y-10');
             }
         });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('section, article, .group').forEach(el => {
+        el.classList.add('transition-all', 'duration-1000', 'translate-y-10', 'opacity-0');
+        observer.observe(el);
+    });
+
+    // ── Nav shrink on scroll ──
+    window.addEventListener('scroll', () => {
+        const nav = document.querySelector('nav');
+        if (window.scrollY > 50) {
+            nav.style.paddingTop = nav.style.paddingBottom = '1rem';
+            nav.style.backgroundColor = 'rgba(5,5,5,0.9)';
+        } else {
+            nav.style.paddingTop = nav.style.paddingBottom = '1.5rem';
+            nav.style.backgroundColor = 'rgba(255,255,255,0.03)';
+        }
+    });
+
+    // ══════════════════════════════════════════════════════════
+    //  T-REX THREE.JS AR EXPERIENCE
+    // ══════════════════════════════════════════════════════════
+    let renderer, scene, camera, trexGroup, animFrameId;
+    let isDragging = false, prevMouse = { x: 0, y: 0 };
+    let rotY = 0.3, rotX = -0.15, autoRotate = false;
+    let currentAnim = 'idle', animTime = 0;
+    let fpsCounter = 0, fpsLast = performance.now();
+
+    function buildTRex() {
+        const g = new THREE.Group();
+        const mat = (hex, emissive = 0x001a1a, rough = 0.7) => new THREE.MeshStandardMaterial({
+            color: hex, emissive, emissiveIntensity: 0.3,
+            roughness: rough, metalness: 0.1
+        });
+        const addMesh = (geo, m, group = g) => { const mesh = new THREE.Mesh(geo, m); group.add(mesh); return mesh; };
+
+        const skinMat  = mat(0x2a5c3a, 0x0a1f0a);
+        const darkMat  = mat(0x1a3a25, 0x050f05);
+        const toothMat = mat(0xf5f0dc, 0x1a1a10, 0.4);
+        const eyeMat   = new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffaa00, emissiveIntensity: 1.2, roughness: 0.1 });
+        const clawMat  = mat(0x3a3028, 0x0a0905, 0.5);
+        const nailMat  = mat(0x251f18, 0x050400, 0.3);
+
+        // ── Torso ──
+        const torsoGeo = new THREE.SphereGeometry(1, 14, 10);
+        torsoGeo.scale(1.3, 0.9, 0.9);
+        const torso = addMesh(torsoGeo, skinMat);
+
+        // ── Chest / belly ──
+        const bellyGeo = new THREE.SphereGeometry(0.85, 10, 8);
+        bellyGeo.scale(1.1, 1, 0.75);
+        const belly = new THREE.Mesh(bellyGeo, mat(0x3a7048, 0x0f2a1a));
+        belly.position.set(0, -0.05, 0.55);
+        torso.add(belly);
+
+        // ── Neck ──
+        const neckGeo = new THREE.CylinderGeometry(0.38, 0.52, 1.1, 10);
+        const neck = new THREE.Mesh(neckGeo, skinMat);
+        neck.position.set(0.7, 0.55, 0);
+        neck.rotation.z = -Math.PI * 0.12;
+        torso.add(neck);
+
+        // ── Head ──
+        const headGroup = new THREE.Group();
+        headGroup.position.set(1.55, 1.0, 0);
+        torso.add(headGroup);
+
+        const crainGeo = new THREE.SphereGeometry(0.52, 12, 10);
+        crainGeo.scale(1.5, 1, 0.9);
+        addMesh(crainGeo, skinMat, headGroup);
+
+        // upper jaw
+        const ujGeo = new THREE.BoxGeometry(1.2, 0.22, 0.5);
+        const uj = new THREE.Mesh(ujGeo, skinMat);
+        uj.position.set(0.5, -0.12, 0);
+        headGroup.add(uj);
+
+        // lower jaw (animated)
+        const ljGroup = new THREE.Group();
+        ljGroup.position.set(-0.1, -0.18, 0);
+        headGroup.add(ljGroup);
+        const ljGeo = new THREE.BoxGeometry(1.0, 0.16, 0.42);
+        addMesh(ljGeo, darkMat, ljGroup);
+
+        // teeth (upper)
+        for (let i = 0; i < 6; i++) {
+            const tGeo = new THREE.ConeGeometry(0.04, 0.14, 4);
+            const t = new THREE.Mesh(tGeo, toothMat);
+            t.position.set(0.1 + i * 0.15, -0.14, (i % 2 === 0 ? 0.1 : -0.1));
+            t.rotation.x = Math.PI;
+            headGroup.add(t);
+        }
+        // teeth (lower)
+        for (let i = 0; i < 5; i++) {
+            const tGeo = new THREE.ConeGeometry(0.035, 0.12, 4);
+            const t = new THREE.Mesh(tGeo, toothMat);
+            t.position.set(0.15 + i * 0.15, 0.08, (i % 2 === 0 ? 0.08 : -0.08));
+            ljGroup.add(t);
+        }
+
+        // eyes
+        const eyeGeo = new THREE.SphereGeometry(0.09, 8, 8);
+        for (const sx of [1, -1]) {
+            const eye = new THREE.Mesh(eyeGeo, eyeMat);
+            eye.position.set(0.35, 0.18, sx * 0.36);
+            headGroup.add(eye);
+            // pupil
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), new THREE.MeshStandardMaterial({ color: 0x000000 }));
+            pupil.position.set(0.07, 0, 0);
+            eye.add(pupil);
+        }
+
+        // brow ridges
+        const browGeo = new THREE.BoxGeometry(0.25, 0.08, 0.18);
+        for (const sz of [0.32, -0.32]) {
+            const brow = new THREE.Mesh(browGeo, darkMat);
+            brow.position.set(0.3, 0.28, sz);
+            brow.rotation.z = 0.2;
+            headGroup.add(brow);
+        }
+
+        // nostril bumps
+        for (const sz of [0.12, -0.12]) {
+            const n = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), darkMat);
+            n.position.set(0.72, 0.06, sz);
+            headGroup.add(n);
+        }
+
+        // ── Tail ──
+        const tailGroup = new THREE.Group();
+        tailGroup.position.set(-1.2, -0.2, 0);
+        torso.add(tailGroup);
+        const segments = [
+            [0.42, 0.78, 0, 0, 0.08],
+            [0.32, 0.6, 0, 0.05, 0.12],
+            [0.22, 0.5, 0, 0.08, 0.15],
+            [0.14, 0.38, 0, 0.1, 0.18],
+            [0.08, 0.28, 0, 0.08, 0.15],
+        ];
+        let tx = 0;
+        for (const [r1, r2, , , ] of segments) {
+            const seg = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, 0.65, 8), skinMat);
+            seg.rotation.z = Math.PI * 0.5;
+            seg.position.x = tx - 0.3;
+            tailGroup.add(seg);
+            tx -= 0.5;
+        }
+
+        // ── Arms (tiny!) ──
+        for (const sx of [1, -1]) {
+            const armGrp = new THREE.Group();
+            armGrp.position.set(0.8, 0.35, sx * 0.85);
+            torso.add(armGrp);
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.45, 8), skinMat);
+            upper.rotation.z = -0.6 * sx;
+            upper.rotation.x = 0.4;
+            armGrp.add(upper);
+            const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.07, 0.35, 8), skinMat);
+            lower.position.set(0, -0.38, 0.2);
+            lower.rotation.x = 0.7;
+            upper.add(lower);
+            // two tiny claws
+            for (let c = 0; c < 2; c++) {
+                const claw = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.14, 5), clawMat);
+                claw.position.set((c - 0.5) * 0.12, -0.22, 0.08);
+                claw.rotation.x = -0.5;
+                lower.add(claw);
+            }
+        }
+
+        // ── Legs ──
+        const legData = [
+            { side: 1,  xOff: -0.3, zOff:  0.65 },
+            { side: -1, xOff: -0.3, zOff: -0.65 },
+        ];
+        for (const { xOff, zOff } of legData) {
+            const legGrp = new THREE.Group();
+            legGrp.position.set(xOff, -0.85, zOff);
+            torso.add(legGrp);
+
+            // upper leg
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.9, 10), skinMat);
+            upper.position.y = -0.45;
+            legGrp.add(upper);
+
+            // knee
+            const knee = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), skinMat);
+            knee.position.y = -0.9;
+            legGrp.add(knee);
+
+            // lower leg
+            const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.14, 0.85, 10), skinMat);
+            lower.position.y = -1.35;
+            lower.rotation.x = 0.35;
+            legGrp.add(lower);
+
+            // foot
+            const foot = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.18, 0.42), darkMat);
+            foot.position.set(0.18, -1.8, 0);
+            legGrp.add(foot);
+
+            // three toe claws
+            for (let t = 0; t < 3; t++) {
+                const claw = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.22, 5), nailMat);
+                claw.rotation.x = -Math.PI * 0.5;
+                claw.position.set(0.36, -1.78, (t - 1) * 0.15);
+                legGrp.add(claw);
+            }
+        }
+
+        // ── Spine ridge ──
+        for (let i = 0; i < 10; i++) {
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18 - i * 0.01, 4), darkMat);
+            spike.position.set(-0.8 + i * 0.22, 0.88, 0);
+            torso.add(spike);
+        }
+
+        g.userData = { torso, headGroup, ljGroup, tailGroup };
+        g.rotation.y = Math.PI * 0.6;
+        g.scale.setScalar(0.55);
+        return g;
+    }
+
+    function initAR() {
+        const canvas = document.getElementById('three-canvas');
+        const wrap   = document.getElementById('ar-canvas-wrap');
+        const W = wrap.clientWidth, H = wrap.clientHeight;
+
+        renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(W, H);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+
+        scene  = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+        camera.position.set(0, 1.5, 8);
+
+        // lights
+        const ambient = new THREE.AmbientLight(0x223344, 0.8);
+        scene.add(ambient);
+
+        const key = new THREE.DirectionalLight(0x66ffee, 2.5);
+        key.position.set(5, 8, 4);
+        key.castShadow = true;
+        scene.add(key);
+
+        const fill = new THREE.DirectionalLight(0x8866ff, 0.8);
+        fill.position.set(-6, 2, -3);
+        scene.add(fill);
+
+        const rim = new THREE.DirectionalLight(0x00ffcc, 1.2);
+        rim.position.set(0, 5, -8);
+        scene.add(rim);
+
+        const ground = new THREE.PointLight(0x22ffaa, 0.5, 10);
+        ground.position.set(0, -3, 0);
+        scene.add(ground);
+
+        // floor grid
+        const gridHelper = new THREE.GridHelper(12, 24, 0x22d3ee44, 0x22d3ee11);
+        gridHelper.position.y = -2.3;
+        scene.add(gridHelper);
+
+        // floor shadow plane
+        const floorGeo = new THREE.PlaneGeometry(12, 12);
+        const floorMat = new THREE.ShadowMaterial({ opacity: 0.4 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -2.3;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        trexGroup = buildTRex();
+        trexGroup.position.y = -0.8;
+        trexGroup.castShadow = true;
+        scene.add(trexGroup);
+
+        // mouse/touch drag
+        canvas.addEventListener('mousedown',  e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+        canvas.addEventListener('mousemove',  e => {
+            if (!isDragging) return;
+            rotY += (e.clientX - prevMouse.x) * 0.012;
+            rotX += (e.clientY - prevMouse.y) * 0.008;
+            rotX = Math.max(-0.6, Math.min(0.5, rotX));
+            prevMouse = { x: e.clientX, y: e.clientY };
+        });
+        canvas.addEventListener('mouseup',   () => isDragging = false);
+        canvas.addEventListener('mouseleave',() => isDragging = false);
+        // pinch/touch
+        let lastTouchDist = null;
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) { isDragging = true; prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }
+            if (e.touches.length === 2) { lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+        }, { passive: true });
+        canvas.addEventListener('touchmove', e => {
+            if (e.touches.length === 1 && isDragging) {
+                rotY += (e.touches[0].clientX - prevMouse.x) * 0.012;
+                rotX += (e.touches[0].clientY - prevMouse.y) * 0.008;
+                rotX = Math.max(-0.6, Math.min(0.5, rotX));
+                prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            if (e.touches.length === 2 && lastTouchDist !== null) {
+                const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                camera.position.z -= (dist - lastTouchDist) * 0.03;
+                camera.position.z = Math.max(3, Math.min(14, camera.position.z));
+                lastTouchDist = dist;
+            }
+        }, { passive: true });
+        canvas.addEventListener('touchend', () => { isDragging = false; lastTouchDist = null; });
+        canvas.addEventListener('wheel', e => {
+            camera.position.z += e.deltaY * 0.01;
+            camera.position.z = Math.max(3, Math.min(14, camera.position.z));
+        }, { passive: true });
+    }
+
+    function applyAnimation(dt) {
+        animTime += dt;
+        const { torso, headGroup, ljGroup, tailGroup } = trexGroup.userData;
+        const t = animTime;
+
+        if (currentAnim === 'idle') {
+            torso.position.y   = Math.sin(t * 1.2) * 0.04;
+            torso.rotation.z   = Math.sin(t * 0.8) * 0.02;
+            headGroup.rotation.z = Math.sin(t * 0.9) * 0.04;
+            tailGroup.rotation.y = Math.sin(t * 1.0) * 0.06;
+            ljGroup.rotation.x = 0;
+        } else if (currentAnim === 'roar') {
+            torso.position.y   = Math.sin(t * 6) * 0.07 + 0.05;
+            torso.rotation.z   = Math.sin(t * 5) * 0.06;
+            headGroup.rotation.x = Math.sin(t * 3) * 0.15 - 0.1;
+            tailGroup.rotation.y = Math.sin(t * 4) * 0.15;
+            // jaw opens on roar
+            ljGroup.rotation.x = (Math.sin(t * 3) * 0.5 + 0.5) * 0.5;
+        } else if (currentAnim === 'walk') {
+            torso.position.y   = Math.abs(Math.sin(t * 3)) * 0.12 - 0.06;
+            torso.rotation.z   = Math.sin(t * 3) * 0.04;
+            headGroup.rotation.z = Math.sin(t * 3) * 0.06;
+            tailGroup.rotation.y = Math.sin(t * 3 + Math.PI) * 0.18;
+            ljGroup.rotation.x = Math.max(0, Math.sin(t * 2) * 0.1);
+        }
+    }
+
+    function renderLoop() {
+        animFrameId = requestAnimationFrame(renderLoop);
+        const now = performance.now();
+        const dt = Math.min((now - (renderLoop._last || now)) / 1000, 0.05);
+        renderLoop._last = now;
+
+        // FPS
+        fpsCounter++;
+        if (now - fpsLast > 800) {
+            document.getElementById('hud-br').textContent = 'FPS: ' + Math.round(fpsCounter / ((now - fpsLast) / 1000));
+            fpsCounter = 0; fpsLast = now;
+        }
+
+        if (autoRotate && !isDragging) rotY += dt * 0.5;
+        trexGroup.rotation.y = rotY;
+        trexGroup.rotation.x = rotX;
+
+        applyAnimation(dt);
+        renderer.render(scene, camera);
+    }
+
+    function destroyAR() {
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        if (renderer) { renderer.dispose(); renderer = null; }
+        scene = camera = trexGroup = null;
+        animTime = 0;
+    }
+
+    // ── AR Modal open/close ──
+    document.getElementById('open-ar-btn').addEventListener('click', () => {
+        document.getElementById('ar-modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => { initAR(); renderLoop(); }, 100);
+    });
+
+    function closeModal() {
+        document.getElementById('ar-modal').classList.remove('open');
+        document.body.style.overflow = '';
+        destroyAR();
+    }
+
+    document.getElementById('ar-close-btn').addEventListener('click', closeModal);
+    document.getElementById('ar-modal').addEventListener('click', e => {
+        if (e.target === document.getElementById('ar-modal')) closeModal();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // ── Animation buttons ──
+    const animBtns = document.querySelectorAll('.ar-ctrl-btn');
+    function setAnim(name) {
+        currentAnim = name;
+        animBtns.forEach(b => b.classList.remove('active'));
+    }
+    document.getElementById('btn-idle').addEventListener('click', () => { setAnim('idle'); document.getElementById('btn-idle').classList.add('active'); });
+    document.getElementById('btn-roar').addEventListener('click', () => { setAnim('roar'); document.getElementById('btn-roar').classList.add('active'); });
+    document.getElementById('btn-walk').addEventListener('click', () => { setAnim('walk'); document.getElementById('btn-walk').classList.add('active'); });
+    document.getElementById('btn-auto').addEventListener('click', function() {
+        autoRotate = !autoRotate;
+        this.classList.toggle('active', autoRotate);
+    });
     </script>
 
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity:0; transform:translateY(20px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes pulseRing {
+            0%   { transform:scale(.8); opacity:.6; }
+            100% { transform:scale(1.5); opacity:0; }
         }
     </style>
 </body>
