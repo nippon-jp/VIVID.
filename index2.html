@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DinoGen AI - 2D to 3D AR Service</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --bg-dark: #05070a;
+            --panel-bg: rgba(10, 15, 25, 0.8);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 100%, 100% 4px, 100% 100%;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glass {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes pulse-cyan {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(0, 242, 255, 0.5); }
+        }
+
+        .active-glow {
+            animation: pulse-cyan 2s infinite;
+        }
+
+        .scanning-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 20;
+            box-shadow: 0 0 20px var(--primary);
+            animation: scan-loop 3s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes scan-loop {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            --poster-color: transparent;
+        }
+
+        /* QR Code Container Styling */
+        #qrcode img {
+            display: block;
+            margin: 0 auto;
+            border: 4px solid white;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto h-full flex flex-col gap-6">
+        
+        <!-- HEADER -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyan-900/50 pb-6">
+            <div>
+                <h1 class="text-3xl font-bold font-cyber tracking-tighter text-cyan-400">DINOGEN <span class="text-white">AI</span></h1>
+                <p class="text-xs font-mono text-cyan-700 tracking-[0.3em]">IMAGE-TO-3D RECONSTRUCTION INTERFACE</p>
+            </div>
+            <div class="flex items-center gap-4 text-[10px] font-mono">
+                <div class="flex flex-col items-end">
+                    <span class="text-gray-500 underline">CORE STATUS</span>
+                    <span class="text-green-400">OPTIMIZED</span>
+                </div>
+                <div class="w-10 h-10 border border-cyan-500/30 rounded-full flex items-center justify-center">
+                    <div class="w-2 h-2 bg-cyan-400 rounded-full animate-ping"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN VIEWPORT -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+            
+            <!-- LEFT: INPUT & STATUS -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- STEP 1: UPLOAD -->
+                <div id="panel-upload" class="glass p-6 rounded-2xl transition-all duration-500">
+                    <h2 class="text-sm font-bold font-cyber mb-4 text-cyan-500 uppercase">Step 01: Image Input</h2>
+                    <div id="drop-zone" class="border-2 border-dashed border-cyan-900/50 rounded-xl p-8 text-center hover:border-cyan-400 transition-colors cursor-pointer group relative overflow-hidden">
+                        <div class="relative z-10">
+                            <svg class="w-12 h-12 mx-auto mb-4 text-cyan-900 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <p class="text-xs font-mono mb-2">DRAG & DROP IMAGE</p>
+                            <p class="text-[10px] text-gray-500 uppercase">PNG, WEBP, JPG UP TO 10MB</p>
+                        </div>
+                        <input type="file" id="file-input" class="hidden" accept="image/*">
+                    </div>
+                    
+                    <div id="image-preview-container" class="mt-4 hidden border border-cyan-500/30 rounded-lg overflow-hidden bg-black">
+                        <img id="image-preview" src="" alt="Preview" class="w-full h-auto opacity-70">
+                    </div>
+
+                    <button id="btn-process" class="w-full mt-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold font-cyber rounded-lg transition-all opacity-50 cursor-not-allowed" disabled>
+                        GENERATE 3D MODEL
+                    </button>
+                </div>
+
+                <!-- STEP 2: LOGS -->
+                <div class="glass p-6 rounded-2xl flex-grow font-mono text-[10px] space-y-2 overflow-y-auto max-h-[300px]">
+                    <h2 class="text-xs font-bold text-gray-500 mb-2 uppercase">System Logs</h2>
+                    <div id="log-container" class="space-y-1 text-cyan-900">
+                        <div>> SYSTEM READY.</div>
+                        <div>> AWAITING IMAGE INPUT...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: 3D / AR VIEWPORT -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                <div id="result-view" class="glass rounded-2xl w-full h-[500px] relative overflow-hidden flex items-center justify-center group">
+                    
+                    <!-- 解析中エフェクト -->
+                    <div id="processing-overlay" class="absolute inset-0 bg-black/60 z-30 flex flex-col items-center justify-center hidden">
+                        <div class="scanning-bar" style="display: block;"></div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mb-4"></div>
+                            <p class="font-cyber text-cyan-400 animate-pulse">RECONSTRUCTING GEOMETRY...</p>
+                            <div class="w-48 h-1 bg-cyan-900 mt-4 rounded-full overflow-hidden">
+                                <div id="process-progress" class="h-full bg-cyan-400 w-0 transition-all"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 待機画面 -->
+                    <div id="placeholder-view" class="text-center p-12">
+                        <p class="font-cyber text-gray-700 text-xl">3D VIEWPORT IDLE</p>
+                        <p class="text-[10px] font-mono text-gray-800 mt-2">WAITING FOR RECONSTRUCTION DATA...</p>
+                    </div>
+
+                    <!-- 3D表示本体 -->
+                    <div id="viewer-container" class="w-full h-full hidden opacity-0 transition-opacity duration-1000">
+                        <model-viewer 
+                            id="dino-viewer"
+                            src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+                            ar
+                            ar-modes="webxr scene-viewer quick-look"
+                            camera-controls
+                            auto-rotate
+                            shadow-intensity="1"
+                            environment-image="neutral"
+                            exposure="1"
+                        >
+                            <button slot="ar-button" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-cyan-500 text-black px-8 py-3 rounded-full font-cyber font-bold hover:scale-105 transition-all active-glow">
+                                START AR EXPERIENCE
+                            </button>
+                        </model-viewer>
+
+                        <div class="absolute top-6 right-6 p-4 glass rounded-lg text-right">
+                            <p class="text-[10px] text-gray-500 font-mono">POLY COUNT</p>
+                            <p class="text-sm font-cyber">142,033</p>
+                            <p class="text-[10px] text-gray-500 font-mono mt-2">TEXTURE RES</p>
+                            <p class="text-sm font-cyber">4K / PBR</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SHARE PANEL (Appears after completion) -->
+                <div id="share-panel" class="glass p-6 rounded-2xl hidden opacity-0 transition-all duration-700 translate-y-4">
+                    <div class="flex flex-col md:flex-row gap-8 items-center">
+                        <div id="qrcode" class="shrink-0 bg-white p-2 rounded-lg"></div>
+                        <div class="flex-grow space-y-4 w-full">
+                            <div>
+                                <h3 class="text-sm font-cyber text-cyan-400 mb-2 uppercase tracking-widest">Share this Experience</h3>
+                                <p class="text-xs text-gray-400 font-mono">スマホのカメラでスキャンして、ARを起動してください。</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <input id="share-url" type="text" readonly class="flex-grow bg-black/50 border border-cyan-900/50 rounded px-3 py-2 font-mono text-xs text-cyan-700 outline-none">
+                                <button id="btn-copy" class="px-4 py-2 bg-cyan-900/30 text-cyan-400 rounded border border-cyan-400/30 hover:bg-cyan-400 hover:text-black transition-all font-mono text-xs uppercase font-bold">
+                                    Copy Link
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] opacity-0 pointer-events-none transition-opacity">
+        <div class="glass p-8 rounded-2xl max-w-sm w-full text-center">
+            <h3 id="modal-title" class="text-xl font-cyber text-cyan-400 mb-4"></h3>
+            <p id="modal-text" class="text-sm text-gray-400 mb-6"></p>
+            <button onclick="closeModal()" class="px-6 py-2 bg-cyan-900/30 text-cyan-400 rounded-lg font-mono text-xs hover:bg-cyan-900/50">CLOSE</button>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const btnProcess = document.getElementById('btn-process');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const logContainer = document.getElementById('log-container');
+        const processingOverlay = document.getElementById('processing-overlay');
+        const viewerContainer = document.getElementById('viewer-container');
+        const placeholderView = document.getElementById('placeholder-view');
+        const progressBar = document.getElementById('process-progress');
+        const sharePanel = document.getElementById('share-panel');
+        const shareUrlInput = document.getElementById('share-url');
+        const btnCopy = document.getElementById('btn-copy');
+
+        // Log Function
+        function addLog(text, isError = false) {
+            const div = document.createElement('div');
+            div.textContent = `> ${text}`;
+            if (isError) div.className = 'text-red-500';
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Modal Functions
+        function showModal(title, text) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            const modal = document.getElementById('custom-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        // QR Code Generation
+        function generateQRCode(url) {
+            document.getElementById("qrcode").innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: url,
+                width: 128,
+                height: 128,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        // Clipboard Copy (Instruction compliance: execCommand fallback)
+        btnCopy.onclick = () => {
+            shareUrlInput.select();
+            try {
+                document.execCommand('copy');
+                const originalText = btnCopy.innerText;
+                btnCopy.innerText = "COPIED!";
+                btnCopy.classList.add('bg-cyan-400', 'text-black');
+                setTimeout(() => {
+                    btnCopy.innerText = originalText;
+                    btnCopy.classList.remove('bg-cyan-400', 'text-black');
+                }, 2000);
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+        };
+
+        // Handle File Input
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFiles(e.target.files);
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('border-cyan-400'); };
+        dropZone.ondragleave = () => { dropZone.classList.remove('border-cyan-400'); };
+        dropZone.ondrop = (e) => { e.preventDefault(); dropZone.classList.remove('border-cyan-400'); handleFiles(e.dataTransfer.files); };
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    showModal('ERROR', '画像ファイルを選択してください。');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
+                    btnProcess.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnProcess.disabled = false;
+                    addLog(`IMAGE LOADED: ${file.name}`);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Processing Simulation
+        btnProcess.onclick = async () => {
+            btnProcess.disabled = true;
+            btnProcess.classList.add('opacity-50');
+            processingOverlay.classList.remove('hidden');
+            placeholderView.classList.add('hidden');
+            sharePanel.classList.add('hidden', 'opacity-0');
+            
+            addLog('INITIATING AI RECONSTRUCTION...');
+
+            const steps = [
+                { p: 20, l: 'ANALYZING GEOMETRY...' },
+                { p: 50, l: 'GENERATING DEPTH MAP...' },
+                { p: 80, l: 'OPTIMIZING MESH...' },
+                { p: 100, l: 'RECONSTRUCTION COMPLETE.' }
+            ];
+
+            for (const step of steps) {
+                await new Promise(r => setTimeout(r, 1000 + Math.random() * 500));
+                progressBar.style.width = `${step.p}%`;
+                addLog(step.l);
+            }
+
+            // Show 3D Viewer and Share Panel
+            setTimeout(() => {
+                processingOverlay.classList.add('hidden');
+                viewerContainer.classList.remove('hidden');
+                setTimeout(() => viewerContainer.classList.remove('opacity-0'), 100);
+                
+                // Setup Share UI
+                const currentUrl = window.location.href;
+                shareUrlInput.value = currentUrl;
+                generateQRCode(currentUrl);
+                
+                sharePanel.classList.remove('hidden');
+                setTimeout(() => {
+                    sharePanel.classList.remove('opacity-0', 'translate-y-4');
+                }, 300);
+
+                addLog('3D VIEWPORT ACTIVE. SHARING ENABLED.');
+                showModal('SUCCESS', '3Dモデルが生成されました。QRコードを使って他のデバイスで体験できます。');
+            }, 500);
+        };
+    </script>
+</body>
+</html>
