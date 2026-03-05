@@ -11,212 +11,139 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-            --cyan:    #00f2ff;
-            --cyan-dim:#005f66;
-            --bg:      #04060a;
-            --panel:   rgba(8, 14, 24, 0.88);
-            --border:  rgba(0, 242, 255, 0.18);
+            --cyan: #00f2ff; --cyan-dim: #005f66;
+            --bg: #04060a; --panel: rgba(8,14,24,0.88); --border: rgba(0,242,255,0.18);
         }
-
         body {
             background: var(--bg);
             background-image:
-                radial-gradient(ellipse at 60% 0%,   rgba(0,242,255,0.07) 0%, transparent 55%),
-                radial-gradient(ellipse at 10% 80%,  rgba(100,0,255,0.05) 0%, transparent 45%);
-            color: #d0dde8;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            min-height: 100vh;
-            overflow-x: hidden;
+                radial-gradient(ellipse at 60% 0%, rgba(0,242,255,.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 10% 80%, rgba(100,0,255,.05) 0%, transparent 45%);
+            color: #d0dde8; font-family: 'JetBrains Mono', monospace;
+            font-size: 13px; min-height: 100vh; overflow-x: hidden;
         }
+        .app-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 48px; display: flex; flex-direction: column; gap: 24px; }
+        header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .logo h1 { font-family: 'Orbitron',sans-serif; font-size: clamp(22px,4vw,32px); font-weight: 900; color: var(--cyan); letter-spacing: -.02em; }
+        .logo p  { font-size: 9px; letter-spacing: .35em; color: var(--cyan-dim); text-transform: uppercase; margin-top: 4px; }
+        .status-dot { display: flex; align-items: center; gap: 10px; font-size: 10px; color: #4ade80; font-family: 'Orbitron',sans-serif; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px #4ade80; animation: blink 2s ease-in-out infinite; }
+        @keyframes blink { 0%,100%{opacity:1;}50%{opacity:.3;} }
+        .main-grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+        @media(max-width:900px){ .main-grid{grid-template-columns:1fr;} }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; backdrop-filter: blur(16px); overflow: hidden; }
+        .panel-head { padding: 13px 18px; border-bottom: 1px solid var(--border); font-family: 'Orbitron',sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .2em; color: var(--cyan); text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .step-num { background: rgba(0,242,255,.1); border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; font-size: 9px; }
+        .panel-body { padding: 18px; }
 
-        /* ── LAYOUT ── */
-        .app-wrap {
-            max-width: 1200px; margin: 0 auto;
-            padding: 28px 20px 48px;
-            display: flex; flex-direction: column; gap: 24px;
-        }
+        /* DROP ZONE */
+        #drop-zone { border: 2px dashed var(--cyan-dim); border-radius: 10px; padding: 28px 16px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+        #drop-zone:hover, #drop-zone.drag-over { border-color: var(--cyan); background: rgba(0,242,255,.04); }
+        #drop-zone svg { color: var(--cyan-dim); transition: color .2s; display: block; margin: 0 auto 10px; }
+        #drop-zone:hover svg { color: var(--cyan); }
+        #drop-zone strong { font-size: 11px; color: #8faab8; display: block; margin-bottom: 6px; }
+        #drop-zone p { font-size: 10px; color: #6b8499; }
+        #file-input { display: none; }
+        #preview-wrap { display: none; margin-top: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; }
+        #preview-wrap img { width: 100%; display: block; opacity: .85; }
+        .clear-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.2); color: #fff; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+        .clear-btn:hover { background: rgba(255,50,50,.6); }
 
-        /* ── HEADER ── */
-        header {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            border-bottom: 1px solid var(--border); padding-bottom: 20px;
-        }
-        .logo h1 { font-family:'Orbitron',sans-serif; font-size:clamp(22px,4vw,32px); font-weight:900; color:var(--cyan); letter-spacing:-.02em; }
-        .logo p  { font-size:9px; letter-spacing:.35em; color:var(--cyan-dim); text-transform:uppercase; margin-top:4px; }
-        .status-dot { display:flex; align-items:center; gap:10px; font-size:10px; color:#4ade80; font-family:'Orbitron',sans-serif; }
-        .dot { width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 8px #4ade80; animation:blink 2s ease-in-out infinite; }
-        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+        /* DEPTH PREVIEW strip */
+        #depth-preview-row { display: none; margin-top: 10px; gap: 6px; }
+        #depth-preview-row.visible { display: flex; }
+        .dmap-thumb { flex: 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+        .dmap-thumb canvas { width: 100%; display: block; }
+        .dmap-label { font-size: 8px; color: var(--cyan-dim); text-align: center; padding: 3px 0; letter-spacing: .1em; }
 
-        /* ── GRID ── */
-        .main-grid { display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start; }
-        @media(max-width:860px){ .main-grid{grid-template-columns:1fr;} }
+        /* SLIDERS */
+        .ctrl-row { margin-bottom: 12px; }
+        .ctrl-label { font-size: 9px; color: #4a6070; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .ctrl-label span { color: var(--cyan); }
+        .slider-wrap { display: flex; align-items: center; gap: 10px; }
+        input[type=range] { flex: 1; -webkit-appearance: none; height: 3px; background: linear-gradient(to right, var(--cyan) 0%, var(--cyan) var(--pct,50%), #1a2a35 var(--pct,50%)); border-radius: 2px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px rgba(0,242,255,.6); cursor: pointer; }
 
-        /* ── PANELS ── */
-        .panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; backdrop-filter:blur(16px); overflow:hidden; }
-        .panel-head {
-            padding:13px 18px; border-bottom:1px solid var(--border);
-            font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700;
-            letter-spacing:.2em; color:var(--cyan); text-transform:uppercase;
-            display:flex; align-items:center; gap:8px;
-        }
-        .step-num { background:rgba(0,242,255,.1); border:1px solid var(--border); border-radius:4px; padding:1px 7px; font-size:9px; }
-        .panel-body { padding:18px; }
+        /* MODE TABS */
+        .mode-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+        .mode-tab { flex: 1; padding: 7px 4px; border: 1px solid rgba(0,242,255,.2); border-radius: 6px; background: rgba(0,242,255,.04); color: rgba(0,242,255,.5); font-family: 'Orbitron',sans-serif; font-size: 8px; font-weight: 700; letter-spacing: .1em; cursor: pointer; transition: all .18s; text-align: center; text-transform: uppercase; }
+        .mode-tab:hover { border-color: var(--cyan); color: #fff; background: rgba(0,242,255,.1); }
+        .mode-tab.active { border-color: var(--cyan); color: #000; background: var(--cyan); }
+        .mode-desc { font-size: 9px; color: #3a6070; line-height: 1.6; margin-bottom: 14px; min-height: 28px; }
 
-        /* ── DROP ZONE ── */
-        #drop-zone {
-            border:2px dashed var(--cyan-dim); border-radius:10px; padding:30px 16px;
-            text-align:center; cursor:pointer; transition:border-color .2s, background .2s;
-        }
-        #drop-zone:hover, #drop-zone.drag-over { border-color:var(--cyan); background:rgba(0,242,255,.04); }
-        #drop-zone svg { color:var(--cyan-dim); transition:color .2s; display:block; margin:0 auto 10px; }
-        #drop-zone:hover svg { color:var(--cyan); }
-        #drop-zone strong { font-size:11px; color:#8faab8; display:block; margin-bottom:6px; }
-        #drop-zone p { font-size:10px; color:#6b8499; }
-        #file-input { display:none; }
+        /* PROCESS BTN */
+        #btn-process { width: 100%; margin-top: 4px; padding: 13px; background: linear-gradient(135deg,#005f6e,#003040); border: 1px solid var(--cyan); border-radius: 8px; font-family: 'Orbitron',sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .15em; color: var(--cyan); cursor: pointer; transition: all .2s; text-transform: uppercase; }
+        #btn-process:hover:not(:disabled) { background: linear-gradient(135deg,#00b8d4,#007090); color: #000; box-shadow: 0 0 24px rgba(0,242,255,.4); }
+        #btn-process:disabled { opacity: .3; cursor: not-allowed; }
 
-        #preview-wrap { display:none; margin-top:14px; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
-        #preview-wrap img { width:100%; display:block; opacity:.8; }
-        .clear-btn {
-            position:absolute; top:6px; right:6px;
-            width:22px; height:22px; border-radius:50%;
-            background:rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.2);
-            color:#fff; font-size:12px; cursor:pointer;
-            display:flex; align-items:center; justify-content:center; transition:background .2s;
-        }
-        .clear-btn:hover { background:rgba(255,50,50,.6); }
+        /* LOGS */
+        #log-scroll { height: 130px; overflow-y: auto; padding: 10px 14px; font-size: 10px; line-height: 1.8; }
+        #log-scroll::-webkit-scrollbar { width: 3px; }
+        #log-scroll::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 2px; }
+        .log-ok   { color: #00c8a0; }
+        .log-info { color: #3a7a90; }
+        .log-warn { color: #f59e0b; }
+        .log-err  { color: #f87171; }
 
-        /* ── SLIDERS ── */
-        .ctrl-row { margin-bottom:14px; }
-        .ctrl-label { font-size:9px; color:#4a6070; text-transform:uppercase; letter-spacing:.12em; margin-bottom:6px; }
-        .slider-wrap { display:flex; align-items:center; gap:10px; }
-        input[type=range] {
-            flex:1; -webkit-appearance:none; height:3px;
-            background: linear-gradient(to right, var(--cyan) 0%, var(--cyan) var(--pct,50%), #1a2a35 var(--pct,50%));
-            border-radius:2px; outline:none;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance:none; width:14px; height:14px;
-            border-radius:50%; background:var(--cyan); box-shadow:0 0 8px rgba(0,242,255,.6); cursor:pointer;
-        }
-        .slider-val { font-size:10px; color:var(--cyan); min-width:28px; text-align:right; }
-
-        /* ── PROCESS BTN ── */
-        #btn-process {
-            width:100%; margin-top:4px; padding:13px;
-            background:linear-gradient(135deg,#005f6e,#003040);
-            border:1px solid var(--cyan); border-radius:8px;
-            font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; letter-spacing:.15em;
-            color:var(--cyan); cursor:pointer; transition:all .2s; text-transform:uppercase;
-        }
-        #btn-process:hover:not(:disabled) { background:linear-gradient(135deg,#00b8d4,#007090); color:#000; box-shadow:0 0 24px rgba(0,242,255,.4); }
-        #btn-process:disabled { opacity:.3; cursor:not-allowed; }
-
-        /* ── LOGS ── */
-        #log-scroll { height:150px; overflow-y:auto; padding:12px 16px; font-size:10px; line-height:1.8; }
-        #log-scroll::-webkit-scrollbar { width:3px; }
-        #log-scroll::-webkit-scrollbar-thumb { background:var(--cyan-dim); border-radius:2px; }
-        .log-ok   { color:#00c8a0; }
-        .log-info { color:#3a7a90; }
-        .log-err  { color:#f87171; }
-
-        /* ── VIEWPORT ── */
-        #viewport-wrap {
-            position:relative; border-radius:14px; overflow:hidden;
-            border:1px solid var(--border); background:#020508; height:520px;
-        }
-        #three-canvas { width:100%!important; height:100%!important; display:block; }
-        #viewport-wrap::before {
-            content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
-            background:
-                repeating-linear-gradient(0deg,  transparent,transparent 39px,rgba(0,242,255,.03) 40px),
-                repeating-linear-gradient(90deg, transparent,transparent 39px,rgba(0,242,255,.03) 40px);
-        }
-
-        /* scan bar */
-        @keyframes scan { 0%{top:-4px;opacity:0;} 8%{opacity:1;} 92%{opacity:1;} 100%{top:100%;opacity:0;} }
-        #scan-bar { display:none; position:absolute; left:0; width:100%; height:3px; z-index:5; background:linear-gradient(to bottom,transparent,var(--cyan),transparent); box-shadow:0 0 12px var(--cyan); }
-        #scan-bar.active { display:block; animation:scan 2.5s linear infinite; }
-
-        /* idle */
-        #idle-msg { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; pointer-events:none; }
-        #idle-msg .big   { font-family:'Orbitron',sans-serif; font-size:clamp(14px,2vw,18px); color:#0d2535; letter-spacing:.12em; }
-        #idle-msg .small { font-size:10px; color:#0a1c26; letter-spacing:.15em; text-transform:uppercase; }
-
-        /* processing overlay */
-        #proc-overlay { display:none; position:absolute; inset:0; z-index:10; background:rgba(2,5,10,.78); flex-direction:column; align-items:center; justify-content:center; gap:16px; }
-        #proc-overlay.active { display:flex; }
-        .spinner { width:52px; height:52px; border:3px solid rgba(0,242,255,.15); border-top-color:var(--cyan); border-radius:50%; animation:spin .7s linear infinite; }
+        /* VIEWPORT */
+        #viewport-wrap { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: #020508; height: 540px; }
+        #three-canvas { width: 100%!important; height: 100%!important; display: block; }
+        #viewport-wrap::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(0,242,255,.03) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(0,242,255,.03) 40px); }
+        @keyframes scan { 0%{top:-4px;opacity:0;}8%{opacity:1;}92%{opacity:1;}100%{top:100%;opacity:0;} }
+        #scan-bar { display: none; position: absolute; left: 0; width: 100%; height: 3px; z-index: 5; background: linear-gradient(to bottom,transparent,var(--cyan),transparent); box-shadow: 0 0 12px var(--cyan); }
+        #scan-bar.active { display: block; animation: scan 2.5s linear infinite; }
+        #idle-msg { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; pointer-events: none; }
+        #idle-msg .big   { font-family: 'Orbitron',sans-serif; font-size: clamp(14px,2vw,18px); color: #0d2535; letter-spacing: .12em; }
+        #idle-msg .small { font-size: 10px; color: #0a1c26; letter-spacing: .15em; text-transform: uppercase; }
+        #proc-overlay { display: none; position: absolute; inset: 0; z-index: 10; background: rgba(2,5,10,.82); flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+        #proc-overlay.active { display: flex; }
+        .spinner { width: 52px; height: 52px; border: 3px solid rgba(0,242,255,.15); border-top-color: var(--cyan); border-radius: 50%; animation: spin .7s linear infinite; }
         @keyframes spin { to{transform:rotate(360deg);} }
-        #proc-label { font-family:'Orbitron',sans-serif; font-size:11px; color:var(--cyan); letter-spacing:.15em; }
-        #proc-bar-wrap { width:200px; height:3px; background:#0d1f2a; border-radius:2px; overflow:hidden; }
-        #proc-bar { height:100%; background:var(--cyan); width:0%; transition:width .4s ease; box-shadow:0 0 8px var(--cyan); }
+        #proc-label { font-family: 'Orbitron',sans-serif; font-size: 11px; color: var(--cyan); letter-spacing: .15em; }
+        #proc-bar-wrap { width: 220px; height: 3px; background: #0d1f2a; border-radius: 2px; overflow: hidden; }
+        #proc-bar { height: 100%; background: var(--cyan); width: 0%; transition: width .4s ease; box-shadow: 0 0 8px var(--cyan); }
+        .hud { position: absolute; z-index: 3; font-size: 9px; letter-spacing: .12em; color: rgba(0,242,255,.38); text-transform: uppercase; pointer-events: none; line-height: 1.7; }
+        #hud-tl{top:12px;left:14px;} #hud-tr{top:12px;right:14px;text-align:right;}
+        #hud-bl{bottom:12px;left:14px;} #hud-br{bottom:12px;right:14px;text-align:right;}
+        .corner{position:absolute;width:16px;height:16px;z-index:4;}
+        .c-tl{top:8px;left:8px;border-top:2px solid rgba(0,242,255,.35);border-left:2px solid rgba(0,242,255,.35);}
+        .c-tr{top:8px;right:8px;border-top:2px solid rgba(0,242,255,.35);border-right:2px solid rgba(0,242,255,.35);}
+        .c-bl{bottom:8px;left:8px;border-bottom:2px solid rgba(0,242,255,.35);border-left:2px solid rgba(0,242,255,.35);}
+        .c-br{bottom:8px;right:8px;border-bottom:2px solid rgba(0,242,255,.35);border-right:2px solid rgba(0,242,255,.35);}
+        #toolbar { display: none; position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 6; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        #toolbar.visible { display: flex; }
+        .tb-btn { padding: 6px 14px; border: 1px solid rgba(0,242,255,.3); border-radius: 5px; background: rgba(0,15,25,.85); color: rgba(0,242,255,.65); font-family: 'Orbitron',sans-serif; font-size: 8px; font-weight: 700; letter-spacing: .12em; cursor: pointer; transition: all .18s; white-space: nowrap; }
+        .tb-btn:hover { background: rgba(0,242,255,.15); color: #fff; border-color: var(--cyan); }
+        .tb-btn.active { background: rgba(0,242,255,.2); color: #fff; border-color: var(--cyan); }
 
-        /* HUD */
-        .hud { position:absolute; z-index:3; font-size:9px; letter-spacing:.12em; color:rgba(0,242,255,.38); text-transform:uppercase; pointer-events:none; line-height:1.7; }
-        #hud-tl { top:12px; left:14px; }
-        #hud-tr { top:12px; right:14px; text-align:right; }
-        #hud-bl { bottom:12px; left:14px; }
-        #hud-br { bottom:12px; right:14px; text-align:right; }
+        /* SHARE */
+        #share-panel { display: none; margin-top: 16px; }
+        #share-panel.visible { display: block; }
+        #share-inner { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+        #qrcode img, #qrcode canvas { display: block; border: 4px solid #fff; border-radius: 4px; }
+        #share-url-row { display: flex; gap: 8px; width: 100%; margin-top: 10px; }
+        #share-url { flex: 1; min-width: 0; background: rgba(0,0,0,.5); border: 1px solid var(--cyan-dim); border-radius: 6px; padding: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 10px; color: #3a8a9a; outline: none; }
+        #btn-copy { padding: 8px 16px; background: rgba(0,242,255,.08); border: 1px solid rgba(0,242,255,.3); border-radius: 6px; color: var(--cyan); font-family: 'Orbitron',sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .1em; cursor: pointer; transition: all .18s; white-space: nowrap; }
+        #btn-copy:hover { background: rgba(0,242,255,.2); color: #fff; }
 
-        /* corner brackets */
-        .corner { position:absolute; width:16px; height:16px; z-index:4; }
-        .c-tl{top:8px;   left:8px;  border-top:   2px solid rgba(0,242,255,.35);border-left:   2px solid rgba(0,242,255,.35);}
-        .c-tr{top:8px;   right:8px; border-top:   2px solid rgba(0,242,255,.35);border-right:  2px solid rgba(0,242,255,.35);}
-        .c-bl{bottom:8px;left:8px;  border-bottom:2px solid rgba(0,242,255,.35);border-left:   2px solid rgba(0,242,255,.35);}
-        .c-br{bottom:8px;right:8px; border-bottom:2px solid rgba(0,242,255,.35);border-right:  2px solid rgba(0,242,255,.35);}
-
-        /* toolbar */
-        #toolbar { display:none; position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:6; gap:8px; flex-wrap:wrap; justify-content:center; }
-        #toolbar.visible { display:flex; }
-        .tb-btn {
-            padding:6px 14px; border:1px solid rgba(0,242,255,.3); border-radius:5px;
-            background:rgba(0,15,25,.85); color:rgba(0,242,255,.65);
-            font-family:'Orbitron',sans-serif; font-size:8px; font-weight:700; letter-spacing:.12em;
-            cursor:pointer; transition:all .18s; white-space:nowrap;
-        }
-        .tb-btn:hover { background:rgba(0,242,255,.15); color:#fff; border-color:var(--cyan); }
-        .tb-btn.active { background:rgba(0,242,255,.2); color:#fff; border-color:var(--cyan); }
-
-        /* ── SHARE ── */
-        #share-panel { display:none; margin-top:16px; }
-        #share-panel.visible { display:block; }
-        #share-inner { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
-        #qrcode img, #qrcode canvas { display:block; border:4px solid #fff; border-radius:4px; }
-        #share-url-row { display:flex; gap:8px; width:100%; margin-top:10px; }
-        #share-url {
-            flex:1; min-width:0;
-            background:rgba(0,0,0,.5); border:1px solid var(--cyan-dim); border-radius:6px;
-            padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:10px; color:#3a8a9a; outline:none;
-        }
-        #btn-copy {
-            padding:8px 16px; background:rgba(0,242,255,.08); border:1px solid rgba(0,242,255,.3);
-            border-radius:6px; color:var(--cyan);
-            font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700; letter-spacing:.1em;
-            cursor:pointer; transition:all .18s; white-space:nowrap;
-        }
-        #btn-copy:hover { background:rgba(0,242,255,.2); color:#fff; }
-
-        /* ── MODAL ── */
-        #modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.88); display:flex; align-items:center; justify-content:center; z-index:999; opacity:0; pointer-events:none; transition:opacity .25s; }
-        #modal-overlay.open { opacity:1; pointer-events:auto; }
-        #modal-box { background:rgba(8,16,28,.97); border:1px solid var(--border); border-radius:16px; padding:36px 32px; max-width:400px; width:90%; text-align:center; box-shadow:0 0 60px rgba(0,242,255,.1); }
-        #modal-box h3 { font-family:'Orbitron',sans-serif; font-size:15px; color:var(--cyan); margin-bottom:12px; }
-        #modal-box p  { font-size:12px; color:#7a9aaa; line-height:1.8; margin-bottom:22px; white-space:pre-line; }
-        #modal-close { padding:8px 24px; background:rgba(0,242,255,.08); border:1px solid var(--border); border-radius:6px; color:var(--cyan); font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700; letter-spacing:.12em; cursor:pointer; transition:all .18s; }
-        #modal-close:hover { background:rgba(0,242,255,.2); }
+        /* MODAL */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; pointer-events: none; transition: opacity .25s; }
+        #modal-overlay.open { opacity: 1; pointer-events: auto; }
+        #modal-box { background: rgba(8,16,28,.97); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 0 60px rgba(0,242,255,.1); }
+        #modal-box h3 { font-family: 'Orbitron',sans-serif; font-size: 15px; color: var(--cyan); margin-bottom: 12px; }
+        #modal-box p  { font-size: 12px; color: #7a9aaa; line-height: 1.8; margin-bottom: 22px; white-space: pre-line; }
+        #modal-close { padding: 8px 24px; background: rgba(0,242,255,.08); border: 1px solid var(--border); border-radius: 6px; color: var(--cyan); font-family: 'Orbitron',sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .12em; cursor: pointer; transition: all .18s; }
+        #modal-close:hover { background: rgba(0,242,255,.2); }
     </style>
 </head>
 <body>
 <div class="app-wrap">
 
-    <!-- HEADER -->
     <header>
         <div class="logo">
             <h1>DINOGEN <span style="color:#fff">AI</span></h1>
-            <p>2D → 3D Displacement Engine // Three.js r128</p>
+            <p>Advanced 2D → 3D Reconstruction Engine v4.0</p>
         </div>
         <div class="status-dot"><div class="dot"></div>ENGINE READY</div>
     </header>
@@ -231,7 +158,7 @@
                 <div class="panel-head"><span class="step-num">01</span> IMAGE INPUT</div>
                 <div class="panel-body">
                     <div id="drop-zone">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                         <strong>DRAG &amp; DROP IMAGE</strong>
@@ -242,44 +169,63 @@
                         <img id="image-preview" src="" alt="preview">
                         <button class="clear-btn" id="btn-clear">✕</button>
                     </div>
+                    <!-- Depth preview thumbnails -->
+                    <div id="depth-preview-row">
+                        <div class="dmap-thumb">
+                            <canvas id="thumb-depth"></canvas>
+                            <div class="dmap-label">DEPTH MAP</div>
+                        </div>
+                        <div class="dmap-thumb">
+                            <canvas id="thumb-mask"></canvas>
+                            <div class="dmap-label">FG MASK</div>
+                        </div>
+                        <div class="dmap-thumb">
+                            <canvas id="thumb-edge"></canvas>
+                            <div class="dmap-label">EDGE MAP</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- PARAMS -->
+            <!-- MODE & PARAMS -->
             <div class="panel">
-                <div class="panel-head"><span class="step-num">02</span> DEPTH PARAMETERS</div>
+                <div class="panel-head"><span class="step-num">02</span> DEPTH MODE</div>
                 <div class="panel-body">
 
-                    <div class="ctrl-row">
-                        <div class="ctrl-label">Depth Intensity</div>
-                        <div class="slider-wrap">
-                            <input type="range" id="sl-depth" min="0.5" max="5" step="0.1" value="2">
-                            <span class="slider-val" id="val-depth">2.0</span>
-                        </div>
+                    <!-- Mode selector -->
+                    <div class="mode-tabs">
+                        <div class="mode-tab active" data-mode="smart">SMART</div>
+                        <div class="mode-tab" data-mode="portrait">PORTRAIT</div>
+                        <div class="mode-tab" data-mode="object">OBJECT</div>
+                        <div class="mode-tab" data-mode="luma">LUMA</div>
+                    </div>
+                    <div class="mode-desc" id="mode-desc">
+                        エッジ検出＋輝度を組み合わせた自動モード。写真・イラスト両方に対応。
                     </div>
 
                     <div class="ctrl-row">
-                        <div class="ctrl-label">Mesh Resolution</div>
-                        <div class="slider-wrap">
-                            <input type="range" id="sl-res" min="32" max="256" step="32" value="128">
-                            <span class="slider-val" id="val-res">128</span>
-                        </div>
+                        <div class="ctrl-label">Depth Intensity <span id="val-depth">2.0</span></div>
+                        <input type="range" id="sl-depth" min="0.3" max="6" step="0.1" value="2">
                     </div>
-
                     <div class="ctrl-row">
-                        <div class="ctrl-label">Depth Smoothing (Blur)</div>
-                        <div class="slider-wrap">
-                            <input type="range" id="sl-blur" min="0" max="8" step="1" value="2">
-                            <span class="slider-val" id="val-blur">2</span>
-                        </div>
+                        <div class="ctrl-label">Mesh Resolution <span id="val-res">160</span></div>
+                        <input type="range" id="sl-res" min="32" max="256" step="32" value="160">
                     </div>
-
                     <div class="ctrl-row">
-                        <div class="ctrl-label">Wireframe Overlay</div>
-                        <div class="slider-wrap">
-                            <input type="range" id="sl-wire" min="0" max="1" step="0.05" value="0">
-                            <span class="slider-val" id="val-wire">0.00</span>
-                        </div>
+                        <div class="ctrl-label">Smoothing <span id="val-blur">3</span></div>
+                        <input type="range" id="sl-blur" min="0" max="10" step="1" value="3">
+                    </div>
+                    <div class="ctrl-row">
+                        <div class="ctrl-label">BG Flatten <span id="val-bg">0.85</span></div>
+                        <input type="range" id="sl-bg" min="0" max="1" step="0.05" value="0.85">
+                    </div>
+                    <div class="ctrl-row">
+                        <div class="ctrl-label">Edge Boost <span id="val-edge">0.5</span></div>
+                        <input type="range" id="sl-edge" min="0" max="1" step="0.05" value="0.5">
+                    </div>
+                    <div class="ctrl-row">
+                        <div class="ctrl-label">Wireframe <span id="val-wire">0.00</span></div>
+                        <input type="range" id="sl-wire" min="0" max="1" step="0.05" value="0">
                     </div>
 
                     <button id="btn-process" disabled>▶ GENERATE 3D MODEL</button>
@@ -291,7 +237,7 @@
                 <div class="panel-head">SYSTEM LOG</div>
                 <div id="log-scroll">
                     <div id="log-container">
-                        <div class="log-info">&gt; SYSTEM READY.</div>
+                        <div class="log-info">&gt; SYSTEM READY. v4.0</div>
                         <div class="log-info">&gt; AWAITING IMAGE INPUT...</div>
                     </div>
                 </div>
@@ -301,52 +247,41 @@
         <!-- RIGHT -->
         <div style="display:flex;flex-direction:column;gap:16px;">
 
-            <!-- VIEWPORT -->
             <div id="viewport-wrap">
                 <canvas id="three-canvas"></canvas>
-
-                <div class="corner c-tl"></div>
-                <div class="corner c-tr"></div>
-                <div class="corner c-bl"></div>
-                <div class="corner c-br"></div>
-
-                <div class="hud" id="hud-tl">VIVID.AR // DINOGEN v3.0</div>
-                <div class="hud" id="hud-tr">ENGINE: THREE.JS r128<br>MODE: DISPLACEMENT MAP</div>
-                <div class="hud" id="hud-bl">DRAG: ROTATE · SCROLL: ZOOM · SHIFT+DRAG: PAN</div>
+                <div class="corner c-tl"></div><div class="corner c-tr"></div>
+                <div class="corner c-bl"></div><div class="corner c-br"></div>
+                <div class="hud" id="hud-tl">VIVID.AR // DINOGEN v4.0</div>
+                <div class="hud" id="hud-tr">ENGINE: THREE.JS r128<br>ALGO: EDGE+LUMA FUSION</div>
+                <div class="hud" id="hud-bl">DRAG=ROTATE · SCROLL=ZOOM · SHIFT+DRAG=PAN</div>
                 <div class="hud" id="hud-br">FPS: --</div>
-
                 <div id="scan-bar"></div>
-
                 <div id="idle-msg">
                     <div class="big">3D VIEWPORT IDLE</div>
-                    <div class="small">Upload an image and press Generate</div>
+                    <div class="small">Upload image → Select mode → Generate</div>
                 </div>
-
                 <div id="proc-overlay">
                     <div class="spinner"></div>
                     <div id="proc-label">ANALYZING...</div>
                     <div id="proc-bar-wrap"><div id="proc-bar"></div></div>
                 </div>
-
                 <div id="toolbar">
                     <button class="tb-btn active" id="tb-texture">TEXTURE</button>
-                    <button class="tb-btn"        id="tb-wire">WIREFRAME</button>
-                    <button class="tb-btn"        id="tb-depth">DEPTH MAP</button>
-                    <button class="tb-btn"        id="tb-auto">AUTO ROTATE</button>
-                    <button class="tb-btn"        id="tb-reset">RESET VIEW</button>
+                    <button class="tb-btn" id="tb-wire">WIREFRAME</button>
+                    <button class="tb-btn" id="tb-depth">DEPTH MAP</button>
+                    <button class="tb-btn" id="tb-mask">FG MASK</button>
+                    <button class="tb-btn" id="tb-auto">AUTO ROTATE</button>
+                    <button class="tb-btn" id="tb-reset">RESET</button>
                 </div>
             </div>
 
-            <!-- SHARE -->
             <div id="share-panel" class="panel">
                 <div class="panel-head">SHARE / QR LINK</div>
                 <div class="panel-body">
                     <div id="share-inner">
                         <div id="qrcode" style="background:#fff;padding:8px;border-radius:6px;flex-shrink:0;"></div>
                         <div style="flex:1;min-width:180px;">
-                            <p style="font-size:10px;color:#4a6070;line-height:1.8;">
-                                スマートフォンでQRコードをスキャンして<br>このページをモバイルで確認できます。
-                            </p>
+                            <p style="font-size:10px;color:#4a6070;line-height:1.8;">スマートフォンでQRコードをスキャンしてモバイルで確認。</p>
                             <div id="share-url-row">
                                 <input id="share-url" type="text" readonly>
                                 <button id="btn-copy">COPY</button>
@@ -359,7 +294,6 @@
     </div>
 </div>
 
-<!-- MODAL -->
 <div id="modal-overlay">
     <div id="modal-box">
         <h3 id="modal-title"></h3>
@@ -369,13 +303,13 @@
 </div>
 
 <!-- Off-screen canvases -->
-<canvas id="depth-canvas"   style="display:none;"></canvas>
+<canvas id="work-canvas"    style="display:none;"></canvas>
 <canvas id="texture-canvas" style="display:none;"></canvas>
 
 <script>
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  REFS
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 const dropZone    = document.getElementById('drop-zone');
 const fileInput   = document.getElementById('file-input');
 const previewWrap = document.getElementById('preview-wrap');
@@ -393,7 +327,7 @@ const toolbar     = document.getElementById('toolbar');
 const sharePanel  = document.getElementById('share-panel');
 const shareUrl    = document.getElementById('share-url');
 const btnCopy     = document.getElementById('btn-copy');
-const depthCanvas = document.getElementById('depth-canvas');
+const workCanvas  = document.getElementById('work-canvas');
 const texCanvas   = document.getElementById('texture-canvas');
 const threeCanvas = document.getElementById('three-canvas');
 const hudFps      = document.getElementById('hud-br');
@@ -401,85 +335,88 @@ const hudFps      = document.getElementById('hud-br');
 const slDepth = document.getElementById('sl-depth');
 const slRes   = document.getElementById('sl-res');
 const slBlur  = document.getElementById('sl-blur');
+const slBg    = document.getElementById('sl-bg');
+const slEdge  = document.getElementById('sl-edge');
 const slWire  = document.getElementById('sl-wire');
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════════════════
-let loadedImg = null;
+// ═══════════════════════════════════════════
+let loadedImg  = null;
+let depthMode  = 'smart';
 let renderer, scene, camera, meshGroup;
-let animId = null;
+let animId     = null;
 let autoRotate = false;
-let texMesh = null, wireMesh = null, depthMesh = null;
+let texMesh = null, wireMesh = null, depthVisMesh = null, maskVisMesh = null;
 let fpsCnt = 0, fpsLast = performance.now();
-
-// Orbit
 const orb = { active:false, shift:false, sx:0, sy:0, rotY:0.4, rotX:-0.18, panX:0, panY:0, zoom:5 };
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  UTILS
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function log(msg, cls='log-info') {
     const d = document.createElement('div');
     d.className = cls; d.textContent = `> ${msg}`;
     logCont.appendChild(d);
     logScroll.scrollTop = logScroll.scrollHeight;
 }
-
 function showModal(title, text) {
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-text').textContent  = text;
     document.getElementById('modal-overlay').classList.add('open');
 }
-function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('open');
-}
-
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
 function setProgress(pct, label) {
     procBar.style.width = pct + '%';
     if (label) procLabel.textContent = label;
 }
-
-// Slider sync util
 function syncSlider(sl, valId, dec) {
     const v = parseFloat(sl.value);
     document.getElementById(valId).textContent = v.toFixed(dec);
     const pct = ((v - parseFloat(sl.min)) / (parseFloat(sl.max) - parseFloat(sl.min))) * 100;
     sl.style.setProperty('--pct', pct + '%');
 }
-const sliders = [
-    [slDepth, 'val-depth', 1],
-    [slRes,   'val-res',   0],
-    [slBlur,  'val-blur',  0],
-    [slWire,  'val-wire',  2],
+const SLIDERS = [
+    [slDepth,'val-depth',1],[slRes,'val-res',0],[slBlur,'val-blur',0],
+    [slBg,'val-bg',2],[slEdge,'val-edge',2],[slWire,'val-wire',2]
 ];
-sliders.forEach(([sl, id, dec]) => {
-    syncSlider(sl, id, dec);
+SLIDERS.forEach(([sl,id,dec]) => {
+    syncSlider(sl,id,dec);
     sl.addEventListener('input', () => {
-        syncSlider(sl, id, dec);
-        // Live wireframe update
-        if (sl === slWire && wireMesh) {
-            wireMesh.material.opacity = parseFloat(slWire.value);
-        }
+        syncSlider(sl,id,dec);
+        if (sl===slWire && wireMesh) wireMesh.material.opacity = parseFloat(slWire.value);
     });
 });
 
-// ═══════════════════════════════════════════════════════
+// Mode tabs
+const MODE_DESC = {
+    smart:   'エッジ検出＋輝度を組み合わせた自動モード。写真・イラスト両方に対応。',
+    portrait:'人物・動物写真向け。中心部を前景と判定し、周辺を背景として平坦化。',
+    object:  '白背景・単色背景の物体向け。背景色を自動検出して除去。',
+    luma:    '輝度のみで深度を計算するシンプルモード。イラスト・シルエットに最適。'
+};
+document.querySelectorAll('.mode-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        depthMode = tab.dataset.mode;
+        document.getElementById('mode-desc').textContent = MODE_DESC[depthMode];
+    });
+});
+
+// ═══════════════════════════════════════════
 //  FILE HANDLING
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 dropZone.addEventListener('click',     () => fileInput.click());
 fileInput.addEventListener('change',   e  => handleFiles(e.target.files));
 dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-    e.preventDefault(); dropZone.classList.remove('drag-over');
-    handleFiles(e.dataTransfer.files);
-});
+dropZone.addEventListener('drop', e  => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
 btnClear.addEventListener('click', () => {
     loadedImg = null; imgPreview.src = '';
     previewWrap.style.display = 'none';
+    document.getElementById('depth-preview-row').classList.remove('visible');
     btnProcess.disabled = true; fileInput.value = '';
     log('IMAGE CLEARED.');
 });
@@ -506,360 +443,423 @@ function handleFiles(files) {
     fileInput.value = '';
 }
 
-// ═══════════════════════════════════════════════════════
-//  DEPTH MAP  (輝度→深度 + ガウシアンブラー)
-// ═══════════════════════════════════════════════════════
-function buildDepthMap(img, res, blur) {
-    depthCanvas.width = depthCanvas.height = res;
-    const ctx = depthCanvas.getContext('2d');
+// ═══════════════════════════════════════════
+//  ▶ DEPTH ENGINE (Core)
+// ═══════════════════════════════════════════
+
+// 1. Render image into work canvas at target resolution
+function getPixels(img, res) {
+    workCanvas.width = workCanvas.height = res;
+    const ctx = workCanvas.getContext('2d');
     ctx.drawImage(img, 0, 0, res, res);
-    const data = ctx.getImageData(0, 0, res, res).data;
+    return ctx.getImageData(0, 0, res, res).data; // RGBA Uint8ClampedArray
+}
 
+// 2. Luminance map
+function lumaMap(data, res) {
     const luma = new Float32Array(res * res);
-    for (let i = 0; i < res * res; i++) {
+    for (let i = 0; i < res * res; i++)
         luma[i] = (0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2]) / 255;
-    }
-
-    if (blur > 0) gaussBlur(luma, res, res, blur);
     return luma;
 }
 
-function gaussBlur(buf, w, h, r) {
-    // 3-pass box blur ≈ gaussian
-    const tmp = new Float32Array(w * h);
-    for (let p = 0; p < 3; p++) {
-        for (let y = 0; y < h; y++)
-            for (let x = 0; x < w; x++) {
-                let s=0, n=0;
-                for (let d=-r; d<=r; d++) { const nx=Math.max(0,Math.min(w-1,x+d)); s+=buf[y*w+nx]; n++; }
-                tmp[y*w+x] = s/n;
-            }
-        for (let y = 0; y < h; y++)
-            for (let x = 0; x < w; x++) {
-                let s=0, n=0;
-                for (let d=-r; d<=r; d++) { const ny=Math.max(0,Math.min(h-1,y+d)); s+=tmp[ny*w+x]; n++; }
-                buf[y*w+x] = s/n;
-            }
+// 3. Sobel edge detection → returns 0‥1 edge strength
+function sobelEdge(luma, res) {
+    const edge = new Float32Array(res * res);
+    for (let y = 1; y < res-1; y++) {
+        for (let x = 1; x < res-1; x++) {
+            const idx = y*res + x;
+            const tl=luma[(y-1)*res+(x-1)], tc=luma[(y-1)*res+x], tr=luma[(y-1)*res+(x+1)];
+            const ml=luma[y*res+(x-1)],                              mr=luma[y*res+(x+1)];
+            const bl=luma[(y+1)*res+(x-1)], bc=luma[(y+1)*res+x], br=luma[(y+1)*res+(x+1)];
+            const gx = -tl - 2*ml - bl + tr + 2*mr + br;
+            const gy = -tl - 2*tc - tr + bl + 2*bc + br;
+            edge[idx] = Math.min(1, Math.sqrt(gx*gx + gy*gy));
+        }
+    }
+    return edge;
+}
+
+// 4. Background mask: flood-fill corners to find background color
+function buildBgMask(data, res, threshold = 40) {
+    // Sample corners (top-left 5×5 region) to get bg color estimate
+    let rSum=0, gSum=0, bSum=0, cnt=0;
+    for (let y=0; y<5; y++) for (let x=0; x<5; x++) {
+        const i=(y*res+x)*4;
+        rSum+=data[i]; gSum+=data[i+1]; bSum+=data[i+2]; cnt++;
+    }
+    const bgR=rSum/cnt, bgG=gSum/cnt, bgB=bSum/cnt;
+
+    // Mask: 0=background, 1=foreground
+    const mask = new Float32Array(res * res);
+    for (let i=0; i<res*res; i++) {
+        const dr=data[i*4]-bgR, dg=data[i*4+1]-bgG, db=data[i*4+2]-bgB;
+        const dist = Math.sqrt(dr*dr + dg*dg + db*db);
+        mask[i] = dist > threshold ? 1 : 0;
+    }
+    return mask;
+}
+
+// 5. Radial center-weight mask (portrait/object mode)
+function radialMask(res, power=2) {
+    const mask = new Float32Array(res * res);
+    const cx = res/2, cy = res/2, maxD = Math.sqrt(cx*cx + cy*cy);
+    for (let y=0; y<res; y++) for (let x=0; x<res; x++) {
+        const dx=x-cx, dy=y-cy;
+        mask[y*res+x] = Math.pow(1 - Math.min(1, Math.sqrt(dx*dx+dy*dy)/maxD), power);
+    }
+    return mask;
+}
+
+// 6. Gaussian blur (3-pass box blur)
+function gaussBlur(buf, res, radius) {
+    if (radius <= 0) return;
+    const tmp = new Float32Array(res * res);
+    for (let p=0; p<3; p++) {
+        for (let y=0; y<res; y++) for (let x=0; x<res; x++) {
+            let s=0, n=0;
+            for (let d=-radius; d<=radius; d++) { const nx=Math.max(0,Math.min(res-1,x+d)); s+=buf[y*res+nx]; n++; }
+            tmp[y*res+x]=s/n;
+        }
+        for (let y=0; y<res; y++) for (let x=0; x<res; x++) {
+            let s=0, n=0;
+            for (let d=-radius; d<=radius; d++) { const ny=Math.max(0,Math.min(res-1,y+d)); s+=tmp[ny*res+x]; n++; }
+            buf[y*res+x]=s/n;
+        }
     }
 }
 
-// ═══════════════════════════════════════════════════════
-//  THREE.JS SCENE
-// ═══════════════════════════════════════════════════════
+// 7. Normalize float array to 0‥1
+function normalize(arr) {
+    let mn=Infinity, mx=-Infinity;
+    for (let v of arr) { if(v<mn)mn=v; if(v>mx)mx=v; }
+    const range = mx - mn || 1;
+    for (let i=0; i<arr.length; i++) arr[i]=(arr[i]-mn)/range;
+}
+
+// ─── MASTER DEPTH BUILDER ───────────────────────────────
+function buildDepth(img, res, mode, blur, bgFlatten, edgeBoost) {
+    const data = getPixels(img, res);
+    const luma = lumaMap(data, res);
+    const edge = sobelEdge(luma, res);
+    gaussBlur(edge, res, 1); // slight blur on edges to reduce noise
+
+    let depth = new Float32Array(res * res);
+    let fgMask;
+
+    if (mode === 'luma') {
+        // Pure luminance
+        depth = luma.slice();
+
+    } else if (mode === 'smart') {
+        // Blend: luma + edge accumulation
+        const edgeAccum = new Float32Array(res * res);
+        // Dilate edges outward to give body to contours
+        for (let y=1; y<res-1; y++) for (let x=1; x<res-1; x++) {
+            let maxE=0;
+            for (let dy=-2; dy<=2; dy++) for (let dx=-2; dx<=2; dx++) {
+                const ny=Math.max(0,Math.min(res-1,y+dy));
+                const nx=Math.max(0,Math.min(res-1,x+dx));
+                maxE=Math.max(maxE, edge[ny*res+nx]);
+            }
+            edgeAccum[y*res+x]=maxE;
+        }
+        gaussBlur(edgeAccum, res, 2);
+        for (let i=0; i<res*res; i++)
+            depth[i] = luma[i] * (1 - edgeBoost) + edgeAccum[i] * edgeBoost;
+
+    } else if (mode === 'portrait') {
+        // Center-weighted depth: center=foreground
+        const radial = radialMask(res, 1.8);
+        fgMask = radial;
+        for (let i=0; i<res*res; i++)
+            depth[i] = luma[i] * 0.3 + radial[i] * 0.7;
+
+    } else if (mode === 'object') {
+        // BG removal: background → flat, foreground → full depth
+        fgMask = buildBgMask(data, res, 35);
+        gaussBlur(fgMask, res, 2); // soften mask edges
+        for (let i=0; i<res*res; i++)
+            depth[i] = luma[i] * fgMask[i];
+    }
+
+    normalize(depth);
+
+    // Apply background flattening: push background pixels toward 0
+    if (bgFlatten > 0) {
+        const bgMaskAuto = buildBgMask(data, res, 30);
+        gaussBlur(bgMaskAuto, res, 3);
+        for (let i=0; i<res*res; i++) {
+            const isBg = 1 - bgMaskAuto[i];
+            depth[i] = depth[i] * (1 - isBg*bgFlatten);
+        }
+    }
+
+    // Final smoothing
+    gaussBlur(depth, res, blur);
+    normalize(depth);
+
+    // Build final fg mask for visualization
+    if (!fgMask) fgMask = buildBgMask(data, res, 30);
+    gaussBlur(fgMask, res, 2);
+
+    return { depth, fgMask, edge };
+}
+
+// ─── Render depth preview thumbnails ───────────────────
+function renderThumbs(depth, fgMask, edge, res) {
+    function drawGray(canvas, data, res) {
+        canvas.width = canvas.height = res;
+        const ctx = canvas.getContext('2d');
+        const img = ctx.createImageData(res, res);
+        for (let i=0; i<res*res; i++) {
+            const v = Math.round(data[i]*255);
+            img.data[i*4]=v; img.data[i*4+1]=v; img.data[i*4+2]=v; img.data[i*4+3]=255;
+        }
+        ctx.putImageData(img, 0, 0);
+    }
+    drawGray(document.getElementById('thumb-depth'), depth, res);
+    drawGray(document.getElementById('thumb-mask'),  fgMask, res);
+    drawGray(document.getElementById('thumb-edge'),  edge, res);
+    document.getElementById('depth-preview-row').classList.add('visible');
+}
+
+// ═══════════════════════════════════════════
+//  THREE.JS
+// ═══════════════════════════════════════════
 function initScene() {
     const wrap = document.getElementById('viewport-wrap');
     const W = wrap.clientWidth, H = wrap.clientHeight;
-
-    renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: false });
+    renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setClearColor(0x020508, 1);
-
     scene  = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(50, W/H, 0.01, 100);
     camera.position.z = orb.zoom;
-
-    // Lights
     scene.add(new THREE.AmbientLight(0x2a4455, 1.2));
-    const key = new THREE.DirectionalLight(0xffffff, 1.4);
-    key.position.set(3, 4, 5); scene.add(key);
-    const fill = new THREE.DirectionalLight(0x4488ff, 0.5);
-    fill.position.set(-4,-2,2); scene.add(fill);
-    const rim = new THREE.DirectionalLight(0x00ffcc, 0.6);
-    rim.position.set(0,0,-6); scene.add(rim);
-
-    meshGroup = new THREE.Group();
-    scene.add(meshGroup);
-
+    const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(3,4,5); scene.add(key);
+    scene.add(Object.assign(new THREE.DirectionalLight(0x4488ff,0.5), {position: new THREE.Vector3(-4,-2,2)}));
+    scene.add(Object.assign(new THREE.DirectionalLight(0x00ffcc,0.6), {position: new THREE.Vector3(0,0,-6)}));
+    meshGroup = new THREE.Group(); scene.add(meshGroup);
     setupOrbit();
-
     window.addEventListener('resize', () => {
         const W2=wrap.clientWidth, H2=wrap.clientHeight;
-        renderer.setSize(W2,H2);
-        camera.aspect=W2/H2;
-        camera.updateProjectionMatrix();
+        renderer.setSize(W2,H2); camera.aspect=W2/H2; camera.updateProjectionMatrix();
     });
 }
 
-// ═══════════════════════════════════════════════════════
-//  ORBIT (scratch — no CDN needed)
-// ═══════════════════════════════════════════════════════
 function setupOrbit() {
     const c = threeCanvas;
-
-    c.addEventListener('mousedown', e => {
-        orb.active=true; orb.shift=e.shiftKey;
-        orb.sx=e.clientX; orb.sy=e.clientY;
-    });
+    c.addEventListener('mousedown', e => { orb.active=true; orb.shift=e.shiftKey; orb.sx=e.clientX; orb.sy=e.clientY; });
     window.addEventListener('mouseup', () => orb.active=false);
     window.addEventListener('mousemove', e => {
         if (!orb.active) return;
         const dx=(e.clientX-orb.sx)*0.009, dy=(e.clientY-orb.sy)*0.009;
         orb.sx=e.clientX; orb.sy=e.clientY;
-        if (orb.shift) { orb.panX+=dx*0.6; orb.panY-=dy*0.6; }
-        else { orb.rotY+=dx; orb.rotX+=dy; orb.rotX=Math.max(-1.4,Math.min(1.4,orb.rotX)); }
+        if(orb.shift){orb.panX+=dx*0.6;orb.panY-=dy*0.6;}
+        else{orb.rotY+=dx;orb.rotX+=dy;orb.rotX=Math.max(-1.4,Math.min(1.4,orb.rotX));}
     });
-    c.addEventListener('wheel', e => {
-        e.preventDefault();
-        orb.zoom=Math.max(1.5,Math.min(12,orb.zoom+e.deltaY*0.005));
-    }, {passive:false});
-
-    // Touch
+    c.addEventListener('wheel', e => { e.preventDefault(); orb.zoom=Math.max(1.5,Math.min(12,orb.zoom+e.deltaY*0.005)); },{passive:false});
     let touches={}, lastD=null;
-    c.addEventListener('touchstart', e=>{
-        e.preventDefault();
-        [...e.changedTouches].forEach(t=>touches[t.identifier]=t);
-        if(Object.keys(touches).length===1){
-            const t=e.changedTouches[0];
-            orb.active=true; orb.sx=t.clientX; orb.sy=t.clientY;
-        }
-    },{passive:false});
-    c.addEventListener('touchmove', e=>{
-        e.preventDefault();
-        [...e.changedTouches].forEach(t=>touches[t.identifier]=t);
-        const ts=Object.values(touches);
-        if(ts.length===1){
-            const t=e.changedTouches[0];
-            const dx=(t.clientX-orb.sx)*0.012, dy=(t.clientY-orb.sy)*0.012;
-            orb.sx=t.clientX; orb.sy=t.clientY;
-            orb.rotY+=dx; orb.rotX+=dy; orb.rotX=Math.max(-1.4,Math.min(1.4,orb.rotX));
-        } else if(ts.length===2){
-            const d=Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);
-            if(lastD!==null) orb.zoom=Math.max(1.5,Math.min(12,orb.zoom-(d-lastD)*0.025));
-            lastD=d;
-        }
-    },{passive:false});
-    c.addEventListener('touchend', e=>{
-        [...e.changedTouches].forEach(t=>delete touches[t.identifier]);
-        if(!Object.keys(touches).length){orb.active=false; lastD=null;}
-    });
+    c.addEventListener('touchstart',e=>{e.preventDefault();[...e.changedTouches].forEach(t=>touches[t.identifier]=t);if(Object.keys(touches).length===1){const t=e.changedTouches[0];orb.active=true;orb.sx=t.clientX;orb.sy=t.clientY;}},{passive:false});
+    c.addEventListener('touchmove',e=>{e.preventDefault();[...e.changedTouches].forEach(t=>touches[t.identifier]=t);const ts=Object.values(touches);if(ts.length===1){const t=e.changedTouches[0];const dx=(t.clientX-orb.sx)*0.012,dy=(t.clientY-orb.sy)*0.012;orb.sx=t.clientX;orb.sy=t.clientY;orb.rotY+=dx;orb.rotX+=dy;orb.rotX=Math.max(-1.4,Math.min(1.4,orb.rotX));}else if(ts.length===2){const d=Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);if(lastD!==null)orb.zoom=Math.max(1.5,Math.min(12,orb.zoom-(d-lastD)*0.025));lastD=d;}},{passive:false});
+    c.addEventListener('touchend',e=>{[...e.changedTouches].forEach(t=>delete touches[t.identifier]);if(!Object.keys(touches).length){orb.active=false;lastD=null;}});
 }
 
-// ═══════════════════════════════════════════════════════
-//  BUILD MESHES
-// ═══════════════════════════════════════════════════════
-function buildMeshes(img, depthMap, res, intensity) {
-    // Dispose old
+// ─── Build Three.js meshes ──────────────────────────────
+function buildMeshes(img, depth, fgMask, edge, res, intensity) {
     while (meshGroup.children.length) {
-        const m = meshGroup.children[0];
+        const m=meshGroup.children[0];
         m.geometry.dispose();
-        if (m.material) {
-            if (m.material.map) m.material.map.dispose();
-            m.material.dispose();
-        }
+        if(m.material){if(m.material.map)m.material.map.dispose();m.material.dispose();}
         meshGroup.remove(m);
     }
-    texMesh = wireMesh = depthMesh = null;
+    texMesh=wireMesh=depthVisMesh=maskVisMesh=null;
 
-    // ── Texture ──────────────────────────────────────
-    texCanvas.width  = img.width;
-    texCanvas.height = img.height;
-    const tctx = texCanvas.getContext('2d');
-    tctx.drawImage(img, 0, 0);
-    const texture = new THREE.CanvasTexture(texCanvas);
+    // Texture
+    texCanvas.width=img.width; texCanvas.height=img.height;
+    const tctx=texCanvas.getContext('2d'); tctx.drawImage(img,0,0);
+    const texture=new THREE.CanvasTexture(texCanvas);
 
-    // ── Depth visualization texture ──────────────────
-    const dRaw = new Uint8Array(res * res * 4);
-    for (let i = 0; i < res*res; i++) {
-        const v = Math.round(depthMap[i]*255);
-        dRaw[i*4]=v; dRaw[i*4+1]=v; dRaw[i*4+2]=v; dRaw[i*4+3]=255;
+    // Depth tex
+    const dRaw=new Uint8Array(res*res*4);
+    for(let i=0;i<res*res;i++){const v=Math.round(depth[i]*255);dRaw[i*4]=v;dRaw[i*4+1]=v;dRaw[i*4+2]=v;dRaw[i*4+3]=255;}
+    const depthTex=new THREE.DataTexture(dRaw,res,res,THREE.RGBAFormat); depthTex.needsUpdate=true;
+
+    // Mask tex
+    const mRaw=new Uint8Array(res*res*4);
+    for(let i=0;i<res*res;i++){const v=Math.round(fgMask[i]*255);mRaw[i*4]=0;mRaw[i*4+1]=Math.round(v*0.9);mRaw[i*4+2]=v;mRaw[i*4+3]=255;}
+    const maskTex=new THREE.DataTexture(mRaw,res,res,THREE.RGBAFormat); maskTex.needsUpdate=true;
+
+    // Geometry
+    const aspect=img.width/img.height;
+    const geo=new THREE.PlaneGeometry(2*aspect,2,res-1,res-1);
+    const pos=geo.attributes.position;
+    for(let i=0;i<pos.count;i++){
+        const u=pos.getX(i)/(2*aspect)+0.5;
+        const v=pos.getY(i)/2+0.5;
+        const px=Math.min(Math.floor(u*(res-1)),res-1);
+        const py=Math.min(Math.floor((1-v)*(res-1)),res-1);
+        pos.setZ(i,(depth[py*res+px]-0.5)*intensity);
     }
-    const depthTex = new THREE.DataTexture(dRaw, res, res, THREE.RGBAFormat);
-    depthTex.needsUpdate = true;
-
-    // ── Geometry: displace by depth ───────────────────
-    const aspect = img.width / img.height;
-    const geo = new THREE.PlaneGeometry(2*aspect, 2, res-1, res-1);
-    const pos = geo.attributes.position;
-
-    for (let i = 0; i < pos.count; i++) {
-        // UV from position
-        const u = pos.getX(i) / (2*aspect) + 0.5;
-        const v = pos.getY(i) / 2 + 0.5;
-        const px = Math.min(Math.floor(u*(res-1)), res-1);
-        const py = Math.min(Math.floor((1-v)*(res-1)), res-1);
-        pos.setZ(i, (depthMap[py*res + px] - 0.5) * intensity);
-    }
-    pos.needsUpdate = true;
+    pos.needsUpdate=true;
     geo.computeVertexNormals();
 
-    // ── Texture mesh ──────────────────────────────────
-    texMesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
-        map: texture, roughness: 0.6, metalness: 0.05,
-    }));
+    // Texture mesh
+    texMesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:texture,roughness:0.55,metalness:0.05}));
     meshGroup.add(texMesh);
 
-    // ── Wireframe overlay ─────────────────────────────
-    const wireGeo = new THREE.WireframeGeometry(geo);
-    wireMesh = new THREE.LineSegments(wireGeo, new THREE.LineBasicMaterial({
-        color: 0x00f2ff, transparent: true, opacity: parseFloat(slWire.value),
-    }));
+    // Wireframe
+    const wireGeo=new THREE.WireframeGeometry(geo);
+    wireMesh=new THREE.LineSegments(wireGeo,new THREE.LineBasicMaterial({color:0x00f2ff,transparent:true,opacity:parseFloat(slWire.value)}));
     meshGroup.add(wireMesh);
 
-    // ── Depth-only mesh ───────────────────────────────
-    depthMesh = new THREE.Mesh(geo.clone(), new THREE.MeshStandardMaterial({
-        map: depthTex, roughness: 0.8,
-    }));
-    depthMesh.visible = false;
-    meshGroup.add(depthMesh);
+    // Depth vis mesh
+    depthVisMesh=new THREE.Mesh(geo.clone(),new THREE.MeshStandardMaterial({map:depthTex,roughness:0.8}));
+    depthVisMesh.visible=false;
+    meshGroup.add(depthVisMesh);
+
+    // Mask vis mesh
+    maskVisMesh=new THREE.Mesh(geo.clone(),new THREE.MeshStandardMaterial({map:maskTex,roughness:0.8}));
+    maskVisMesh.visible=false;
+    meshGroup.add(maskVisMesh);
 }
 
-// ═══════════════════════════════════════════════════════
-//  RENDER LOOP
-// ═══════════════════════════════════════════════════════
+// ─── Render loop ────────────────────────────────────────
 function startRenderLoop() {
-    if (animId) cancelAnimationFrame(animId);
-
-    function tick() {
-        animId = requestAnimationFrame(tick);
-
+    if(animId)cancelAnimationFrame(animId);
+    function tick(){
+        animId=requestAnimationFrame(tick);
         fpsCnt++;
-        const now = performance.now();
-        if (now - fpsLast > 900) {
-            hudFps.textContent = `FPS: ${Math.round(fpsCnt/((now-fpsLast)/1000))}`;
-            fpsCnt=0; fpsLast=now;
-        }
-
-        if (autoRotate) orb.rotY += 0.007;
-
-        const qY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), orb.rotY);
-        const qX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), orb.rotX);
-        meshGroup.quaternion.multiplyQuaternions(qY, qX);
-        meshGroup.position.set(orb.panX, orb.panY, 0);
-        camera.position.z = orb.zoom;
-
-        renderer.render(scene, camera);
+        const now=performance.now();
+        if(now-fpsLast>900){hudFps.textContent=`FPS: ${Math.round(fpsCnt/((now-fpsLast)/1000))}`;fpsCnt=0;fpsLast=now;}
+        if(autoRotate)orb.rotY+=0.007;
+        const qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),orb.rotY);
+        const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),orb.rotX);
+        meshGroup.quaternion.multiplyQuaternions(qY,qX);
+        meshGroup.position.set(orb.panX,orb.panY,0);
+        camera.position.z=orb.zoom;
+        renderer.render(scene,camera);
     }
     tick();
 }
 
-// ═══════════════════════════════════════════════════════
-//  MAIN: GENERATE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  MAIN GENERATE
+// ═══════════════════════════════════════════
 btnProcess.addEventListener('click', async () => {
-    if (!loadedImg) return;
-
-    btnProcess.disabled = true;
-    idleMsg.style.display = 'none';
+    if(!loadedImg)return;
+    btnProcess.disabled=true;
+    idleMsg.style.display='none';
     toolbar.classList.remove('visible');
     sharePanel.classList.remove('visible');
-    setProgress(0, 'INITIALIZING...');
+    setProgress(0,'INITIALIZING...');
     procOverlay.classList.add('active');
     scanBar.classList.add('active');
 
     const res       = parseInt(slRes.value);
     const blur      = parseInt(slBlur.value);
     const intensity = parseFloat(slDepth.value);
+    const bgFlatten = parseFloat(slBg.value);
+    const edgeBoost = parseFloat(slEdge.value);
 
-    log(`RECONSTRUCTION START — res:${res} blur:${blur} depth:${intensity}`);
+    log(`MODE: ${depthMode.toUpperCase()} | res:${res} blur:${blur} depth:${intensity} bg:${bgFlatten} edge:${edgeBoost}`);
 
-    await sleep(150);
-    setProgress(15, 'EXTRACTING PIXEL LUMINANCE...');
-    log('BUILDING DEPTH MAP FROM LUMINANCE...');
+    await sleep(120);
+    setProgress(15,'EXTRACTING PIXELS...');
     await sleep(80);
 
-    // CPU depth map (yield to avoid blocking UI)
-    const depthMap = await new Promise(resolve =>
-        setTimeout(() => resolve(buildDepthMap(loadedImg, res, blur)), 0)
-    );
+    let depth, fgMask, edge;
+    await new Promise(resolve => setTimeout(()=>{
+        setProgress(30,'COMPUTING DEPTH MAP...');
+        const result = buildDepth(loadedImg, res, depthMode, blur, bgFlatten, edgeBoost);
+        depth=result.depth; fgMask=result.fgMask; edge=result.edge;
+        resolve();
+    },0));
 
-    setProgress(45, 'GENERATING DISPLACEMENT GEOMETRY...');
-    log(`DEPTH MAP: ${res}×${res} — blur radius: ${blur}`, 'log-ok');
-    await sleep(200);
+    log(`DEPTH MAP: ${res}×${res} | mode:${depthMode}`, 'log-ok');
+    setProgress(55,'RENDERING PREVIEW...');
+    renderThumbs(depth, fgMask, edge, res);
+    await sleep(150);
 
-    if (!renderer) {
-        initScene();
-        log('THREE.JS SCENE INITIALIZED.', 'log-ok');
-    }
+    if(!renderer){ initScene(); log('THREE.JS SCENE INITIALIZED.','log-ok'); }
 
-    setProgress(70, 'CONSTRUCTING MESH...');
+    setProgress(70,'BUILDING 3D GEOMETRY...');
     await sleep(100);
+    await new Promise(resolve=>setTimeout(()=>{ buildMeshes(loadedImg,depth,fgMask,edge,res,intensity); resolve(); },0));
 
-    await new Promise(resolve =>
-        setTimeout(() => { buildMeshes(loadedImg, depthMap, res, intensity); resolve(); }, 0)
-    );
-
-    log(`MESH BUILT — ${res*res} vertices, ${(res-1)*(res-1)*2} faces`, 'log-ok');
-    setProgress(90, 'COMPUTING NORMALS & TEXTURES...');
+    log(`MESH: ${res*res} vertices | ${(res-1)*(res-1)*2} faces`,'log-ok');
+    setProgress(90,'COMPUTING NORMALS...');
     await sleep(300);
 
     startRenderLoop();
-    setProgress(100, 'COMPLETE');
-    log('3D MODEL READY ✓', 'log-ok');
-    log('DRAG=ROTATE  SCROLL=ZOOM  SHIFT+DRAG=PAN', 'log-info');
-    await sleep(350);
+    setProgress(100,'RECONSTRUCTION COMPLETE');
+    log('3D MODEL READY ✓','log-ok');
+    await sleep(300);
 
     procOverlay.classList.remove('active');
     scanBar.classList.remove('active');
     toolbar.classList.add('visible');
 
-    const url = window.location.href;
-    shareUrl.value = url;
+    const url=window.location.href;
+    shareUrl.value=url;
     generateQR(url);
     sharePanel.classList.add('visible');
-
-    btnProcess.disabled = false;
+    btnProcess.disabled=false;
     setViewMode('texture');
+    document.getElementById('hud-tr').innerHTML=`ENGINE: THREE.JS r128<br>MODE: ${depthMode.toUpperCase()} DEPTH`;
 
     showModal(
         'RECONSTRUCTION COMPLETE',
-        `メッシュ: ${res}×${res} 頂点 / ${(res-1)*(res-1)*2} 面\n深度強度: ${intensity}\n\nドラッグで回転・スクロールでズーム\nツールバーからワイヤフレーム・深度マップ表示も可能`
+        `モード: ${depthMode.toUpperCase()}\nメッシュ: ${res}×${res} 頂点\n深度強度: ${intensity}\n\nヒント: BG FLATTENを上げると背景が平坦に\nEDGE BOOSTを上げると輪郭が鮮明に`
     );
 });
 
-// ═══════════════════════════════════════════════════════
-//  VIEW MODE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  VIEW MODES
+// ═══════════════════════════════════════════
 function setViewMode(mode) {
-    if (!texMesh) return;
-    ['tb-texture','tb-wire','tb-depth'].forEach(id => document.getElementById(id).classList.remove('active'));
-
-    if (mode==='texture') {
-        texMesh.visible=true; depthMesh.visible=false;
-        wireMesh.material.opacity=parseFloat(slWire.value);
+    if(!texMesh)return;
+    ['tb-texture','tb-wire','tb-depth','tb-mask'].forEach(id=>document.getElementById(id).classList.remove('active'));
+    texMesh.visible=false; depthVisMesh.visible=false; maskVisMesh.visible=false;
+    if(mode==='texture'){
+        texMesh.visible=true; wireMesh.material.opacity=parseFloat(slWire.value);
         document.getElementById('tb-texture').classList.add('active');
-    } else if (mode==='wire') {
-        texMesh.visible=false; depthMesh.visible=false;
+    } else if(mode==='wire'){
         wireMesh.material.opacity=1.0;
         document.getElementById('tb-wire').classList.add('active');
-    } else if (mode==='depth') {
-        texMesh.visible=false; depthMesh.visible=true;
-        wireMesh.material.opacity=0.2;
+    } else if(mode==='depth'){
+        depthVisMesh.visible=true; wireMesh.material.opacity=0.15;
         document.getElementById('tb-depth').classList.add('active');
+    } else if(mode==='mask'){
+        maskVisMesh.visible=true; wireMesh.material.opacity=0.15;
+        document.getElementById('tb-mask').classList.add('active');
     }
 }
+document.getElementById('tb-texture').addEventListener('click',()=>setViewMode('texture'));
+document.getElementById('tb-wire').addEventListener('click',   ()=>setViewMode('wire'));
+document.getElementById('tb-depth').addEventListener('click',  ()=>setViewMode('depth'));
+document.getElementById('tb-mask').addEventListener('click',   ()=>setViewMode('mask'));
+document.getElementById('tb-auto').addEventListener('click',function(){autoRotate=!autoRotate;this.classList.toggle('active',autoRotate);});
+document.getElementById('tb-reset').addEventListener('click',()=>{orb.rotY=0.4;orb.rotX=-0.18;orb.panX=0;orb.panY=0;orb.zoom=5;});
 
-document.getElementById('tb-texture').addEventListener('click', () => setViewMode('texture'));
-document.getElementById('tb-wire').addEventListener('click',    () => setViewMode('wire'));
-document.getElementById('tb-depth').addEventListener('click',   () => setViewMode('depth'));
-document.getElementById('tb-auto').addEventListener('click', function() {
-    autoRotate=!autoRotate; this.classList.toggle('active',autoRotate);
-});
-document.getElementById('tb-reset').addEventListener('click', () => {
-    orb.rotY=0.4; orb.rotX=-0.18; orb.panX=0; orb.panY=0; orb.zoom=5;
-});
-
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  QR & COPY
-// ═══════════════════════════════════════════════════════
-function generateQR(url) {
-    const el = document.getElementById('qrcode');
-    el.innerHTML = '';
-    try {
-        new QRCode(el, {text:url, width:128, height:128, colorDark:'#000', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H});
-    } catch(e) { el.textContent='QR生成エラー'; log('QR CODE FAILED.','log-err'); }
+// ═══════════════════════════════════════════
+function generateQR(url){
+    const el=document.getElementById('qrcode'); el.innerHTML='';
+    try{new QRCode(el,{text:url,width:128,height:128,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});}
+    catch(e){el.textContent='QR生成エラー';}
 }
-
-btnCopy.addEventListener('click', async () => {
-    try {
-        if (navigator.clipboard) await navigator.clipboard.writeText(shareUrl.value);
-        else { shareUrl.select(); document.execCommand('copy'); }
-        const o=btnCopy.textContent; btnCopy.textContent='COPIED!';
-        setTimeout(()=>btnCopy.textContent=o, 2000);
-    } catch(e){}
+btnCopy.addEventListener('click',async()=>{
+    try{
+        if(navigator.clipboard)await navigator.clipboard.writeText(shareUrl.value);
+        else{shareUrl.select();document.execCommand('copy');}
+        const o=btnCopy.textContent;btnCopy.textContent='COPIED!';setTimeout(()=>btnCopy.textContent=o,2000);
+    }catch(e){}
 });
-
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 </script>
 </body>
 </html>
