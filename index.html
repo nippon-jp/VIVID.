@@ -56,18 +56,19 @@
             white-space: nowrap;
         }
 
+        /* カスタムカーソル: 淡いボヤけた光 */
         .custom-cursor {
             position: fixed;
-            width: 300px;
-            height: 300px;
+            width: 350px;
+            height: 350px;
             background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
             border-radius: 50%;
             pointer-events: none;
             z-index: 9999;
             mix-blend-mode: screen;
-            filter: blur(40px);
+            filter: blur(50px);
             transform: translate(-50%, -50%);
-            transition: background 0.3s ease;
+            will-change: transform, background;
         }
 
         .nav-link {
@@ -125,7 +126,7 @@
         <button class="bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-zinc-200 transition">Menu</button>
     </header>
 
-    <section class="canvas-container">
+    <section class="canvas-container" id="hero-section">
         <div class="hero-text">
             <h1 class="hero-title">IMAGINATION<br>UNBOUND</h1>
         </div>
@@ -184,34 +185,35 @@
     <script>
         const cursor = document.getElementById('cursor');
         let hue = 0;
-        let mouseX = 0;
-        let mouseY = 0;
+        let mouseX = -1000;
+        let mouseY = -1000;
 
+        // カーソル追従と色の変化
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
             
             hue = (hue + 1) % 360;
-            const color = `hsla(${hue}, 70%, 70%, 0.4)`;
+            const color = `hsla(${hue}, 80%, 70%, 0.4)`;
             
             gsap.to(cursor, {
                 x: mouseX,
                 y: mouseY,
-                duration: 0.6,
+                duration: 0.8,
                 ease: "power2.out",
                 background: `radial-gradient(circle, ${color} 0%, rgba(255,255,255,0) 70%)`
             });
         });
 
         const initAntigravity = () => {
-            const { Engine, Render, Runner, Bodies, Composite, MouseConstraint, Mouse, Events } = Matter;
+            const { Engine, Render, Runner, Bodies, Composite, Events, Common } = Matter;
 
             const container = document.getElementById('antigravity-canvas');
             const width = container.clientWidth;
             const height = container.clientHeight;
 
             const engine = Engine.create();
-            engine.world.gravity.y = 0;
+            engine.gravity.y = 0;
 
             const render = Render.create({
                 element: container,
@@ -220,28 +222,30 @@
                     width: width,
                     height: height,
                     wireframes: false,
-                    background: 'transparent'
+                    background: 'transparent',
+                    pixelRatio: window.devicePixelRatio
                 }
             });
 
-            const wallOptions = { isStatic: true, render: { visible: false } };
-            Composite.add(engine.world, [
-                Bodies.rectangle(width / 2, -100, width, 200, wallOptions),
-                Bodies.rectangle(width / 2, height + 100, width, 200, wallOptions),
-                Bodies.rectangle(-100, height / 2, 200, height, wallOptions),
-                Bodies.rectangle(width + 100, height / 2, 200, height, wallOptions)
-            ]);
+            const wallThickness = 100;
+            const walls = [
+                Bodies.rectangle(width / 2, -wallThickness/2, width, wallThickness, { isStatic: true, render: { visible: false } }),
+                Bodies.rectangle(width / 2, height + wallThickness/2, width, wallThickness, { isStatic: true, render: { visible: false } }),
+                Bodies.rectangle(-wallThickness/2, height / 2, wallThickness, height, { isStatic: true, render: { visible: false } }),
+                Bodies.rectangle(width + wallThickness/2, height / 2, wallThickness, height, { isStatic: true, render: { visible: false } })
+            ];
 
             const orbs = [];
-            for (let i = 0; i < 20; i++) {
-                const radius = Math.random() * 30 + 15;
+            const orbCount = 20;
+            for (let i = 0; i < orbCount; i++) {
+                const radius = Common.random(15, 45);
                 const orb = Bodies.circle(
-                    Math.random() * width,
-                    Math.random() * height,
+                    Common.random(0, width),
+                    Common.random(0, height),
                     radius,
                     {
-                        restitution: 0.8,
-                        frictionAir: 0.05,
+                        restitution: 0.9,
+                        frictionAir: 0.04,
                         render: {
                             fillStyle: 'rgba(255, 255, 255, 0.03)',
                             strokeStyle: 'rgba(255, 255, 255, 0.1)',
@@ -249,33 +253,65 @@
                         }
                     }
                 );
+                
+                orb.targetAlpha = 0.03;
+                orb.currentAlpha = 0.03;
+                orb.isGlowing = false;
+
                 orbs.push(orb);
             }
 
-            Composite.add(engine.world, orbs);
+            Composite.add(engine.world, [...walls, ...orbs]);
 
-            // マウス座標とのインタラクション
             Events.on(engine, 'beforeUpdate', () => {
                 orbs.forEach(orb => {
-                    // ポインター（光の中心）からの逃避ロジック
                     const dx = orb.position.x - mouseX;
                     const dy = orb.position.y - mouseY;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    const repelRadius = 300; // 逃げ始める距離
+                    
+                    const repelRadius = 350; 
+                    const touchRadius = orb.circleRadius + 50; // 接触（接近）とみなす半径
 
+                    // --- カラフル発光 & 接触ロジック ---
+                    if (distance < touchRadius) {
+                        orb.isGlowing = true;
+                        const intensity = (touchRadius - distance) / touchRadius;
+                        
+                        // ポインターの色相 (hue) を利用して発光
+                        const orbHue = hue; 
+                        orb.targetAlpha = 0.3 + (intensity * 0.5);
+                        
+                        // 境界線をカラフルに発光
+                        orb.render.strokeStyle = `hsla(${orbHue}, 100%, 80%, ${orb.targetAlpha + 0.2})`;
+                        orb.render.lineWidth = 2 + (intensity * 4);
+                        
+                        // 塗りつぶしもカラフルに
+                        orb.render.fillStyle = `hsla(${orbHue}, 80%, 60%, ${orb.targetAlpha})`;
+                    } else {
+                        orb.isGlowing = false;
+                        orb.targetAlpha = 0.03;
+                        orb.render.strokeStyle = `rgba(255, 255, 255, 0.1)`;
+                        orb.render.lineWidth = 1;
+                        orb.render.fillStyle = `rgba(255, 255, 255, ${orb.currentAlpha})`;
+                    }
+
+                    // アルファ値の補間
+                    orb.currentAlpha += (orb.targetAlpha - orb.currentAlpha) * 0.1;
+
+                    // --- 回避（斥力） ---
                     if (distance < repelRadius) {
-                        // 距離が近いほど強い力を加える
-                        const forceMagnitude = (repelRadius - distance) * 0.00002 * orb.mass;
+                        const forceFactor = (repelRadius - distance) / repelRadius;
+                        const forceMagnitude = forceFactor * 0.0008 * orb.mass;
                         Matter.Body.applyForce(orb, orb.position, {
                             x: (dx / distance) * forceMagnitude,
                             y: (dy / distance) * forceMagnitude
                         });
                     }
 
-                    // 微弱なランダム浮遊モーション
+                    // 微弱な浮遊
                     Matter.Body.applyForce(orb, orb.position, {
-                        x: (Math.random() - 0.5) * 0.00005 * orb.mass,
-                        y: (Math.random() - 0.5) * 0.00005 * orb.mass
+                        x: (Math.random() - 0.5) * 0.00008 * orb.mass,
+                        y: (Math.random() - 0.5) * 0.00008 * orb.mass
                     });
                 });
             });
@@ -295,7 +331,7 @@
             gsap.from(".hero-title", {
                 duration: 3,
                 opacity: 0,
-                y: 50,
+                y: 30,
                 ease: "power3.out"
             });
         };
