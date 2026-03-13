@@ -1,792 +1,839 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIVID. | Interactive Digital Experience</title>
-    <!-- Favicon 設置 -->
-    <link rel="icon" href="favicon.PNG" type="image/png">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #050505;
-            color: #ffffff;
-            overflow-x: hidden;
-            margin: 0;
-            cursor: none;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIVID. | Interactive Digital Experience</title>
+<link rel="icon" href="favicon.PNG" type="image/png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* ── 既存スタイル ── */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #050505;
+    color: #ffffff;
+    overflow-x: hidden;
+    margin: 0;
+    cursor: none;
+}
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: #050505;
+}
+#antigravity-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+}
+.hero-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+}
+.hero-title {
+    font-size: 12vw;
+    font-weight: 900;
+    line-height: 0.8;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    opacity: 0.05;
+    white-space: nowrap;
+}
+.custom-cursor {
+    position: fixed;
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: screen;
+    filter: blur(50px);
+    transform: translate(-50%, -50%);
+    will-change: transform, background;
+}
+.nav-link { transition: all 0.3s ease; position: relative; }
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0; height: 1px;
+    bottom: -2px; left: 0;
+    background-color: white;
+    transition: width 0.3s ease;
+}
+.nav-link:hover::after { width: 100%; }
+.glass-card {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+}
+::-webkit-scrollbar { display: none; }
+.animate-spin-slow { animation: spin 12s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background: #050505;
-        }
+/* ── INNOVATION セクション ── */
+#innovation {
+    position: relative;
+    padding: 9rem 0 7rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+}
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9990;
+}
+.inn-label {
+    display: flex;
+    align-items: baseline;
+    gap: 2rem;
+    padding: 0 6vw;
+    margin-bottom: 5rem;
+}
+.inn-num {
+    font-family: 'EB Garamond', serif;
+    font-size: clamp(4rem, 8vw, 7rem);
+    font-weight: 400;
+    line-height: 1;
+    color: rgba(240,236,228,0.06);
+    letter-spacing: -0.02em;
+    user-select: none;
+}
+.inn-title-wrap { display: flex; flex-direction: column; gap: .35rem; }
+.inn-eyebrow {
+    font-size: 0.55rem;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+}
+.inn-title {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: -.04em;
+    line-height: .9;
+    text-transform: uppercase;
+}
+.inn-quote {
+    padding: 0 6vw;
+    margin-bottom: 6rem;
+    max-width: 46ch;
+}
+.inn-quote p {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.05rem, 2vw, 1.5rem);
+    line-height: 1.6;
+    color: rgba(240,236,228,0.38);
+    border-left: 1px solid rgba(255,255,255,0.08);
+    padding-left: 2rem;
+}
+.sketch-stage {
+    position: relative;
+    width: 100%;
+    height: clamp(420px, 60vw, 780px);
+    margin-bottom: 6rem;
+}
+.sketch-card {
+    position: absolute;
+    cursor: pointer;
+    will-change: transform;
+}
+.sketch-inner {
+    position: relative;
+    background: #0b0b0b;
+    border: 1px solid rgba(255,255,255,0.05);
+    overflow: hidden;
+}
+.sketch-inner canvas { display: block; width: 100%; height: 100%; }
+.sketch-note {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: .8rem 1rem;
+    background: linear-gradient(to top, rgba(5,5,5,.92) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity .4s;
+    pointer-events: none;
+}
+.sketch-card:hover .sketch-note { opacity: 1; }
+.sketch-note-tag {
+    display: block;
+    font-size: .48rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(240,236,228,0.22);
+    margin-bottom: .3rem;
+}
+.sketch-note-text {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: .8rem;
+    color: rgba(240,236,228,0.55);
+    line-height: 1.5;
+}
+.inn-fragments {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.05);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 6rem;
+}
+@media (max-width: 640px) { .inn-fragments { grid-template-columns: 1fr; } }
+.inn-fragment {
+    background: #050505;
+    padding: 2.5rem 2rem;
+    transition: background .3s;
+}
+.inn-fragment:hover { background: rgba(255,255,255,0.02); }
+.inn-frag-label {
+    display: block;
+    font-size: .48rem;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.22);
+    margin-bottom: 1rem;
+}
+.inn-frag-text {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: clamp(.9rem, 1.5vw, 1.1rem);
+    line-height: 1.7;
+    color: rgba(240,236,228,0.48);
+}
+.inn-frag-dash {
+    display: inline-block;
+    width: .7rem; height: 1px;
+    background: rgba(240,236,228,0.18);
+    vertical-align: middle;
+    margin-right: .5rem;
+}
+.inn-closing {
+    padding: 0 6vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.inn-closing-text {
+    font-family: 'EB Garamond', serif;
+    font-size: clamp(1rem, 1.8vw, 1.25rem);
+    color: rgba(240,236,228,0.18);
+    font-style: italic;
+    line-height: 1.65;
+}
+.inn-closing-count {
+    font-size: .5rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(240,236,228,0.12);
+    text-align: right;
+    line-height: 2.2;
+    flex-shrink: 0;
+}
+.inn-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity .8s ease, transform .8s ease;
+}
+.inn-reveal.in { opacity: 1; transform: translateY(0); }
 
-        #antigravity-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-        }
+/* ── WORKS セクション ── */
+#works-section { border-top: 1px solid rgba(255,255,255,0.06); }
 
-        .hero-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 5;
-            pointer-events: none;
-        }
+/* fullstack: 各作品は100vhのパネル */
+.works-stack { display: flex; flex-direction: column; }
 
-        .hero-title {
-            font-size: 12vw;
-            font-weight: 900;
-            line-height: 0.8;
-            letter-spacing: -0.05em;
-            text-transform: uppercase;
-            opacity: 0.05;
-            white-space: nowrap;
-        }
+.work-panel {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
-        /* カスタムカーソル: 淡いボヤけた光 */
-        .custom-cursor {
-            position: fixed;
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            mix-blend-mode: screen;
-            filter: blur(50px);
-            transform: translate(-50%, -50%);
-            will-change: transform, background;
-        }
+/* 左：アニメーションキャンバス 60% */
+.work-panel-canvas {
+    position: relative;
+    width: 60%;
+    height: 100%;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.work-panel-canvas canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: block;
+}
 
-        .nav-link {
-            transition: all 0.3s ease;
-            position: relative;
-        }
+/* 右：テキスト情報 40% */
+.work-panel-info {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 4rem 4rem 4rem 3rem;
+    border-left: 1px solid rgba(255,255,255,0.05);
+    position: relative;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity .9s ease, transform .9s ease;
+}
+.work-panel.in .work-panel-info { opacity: 1; transform: translateX(0); }
 
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 1px;
-            bottom: -2px;
-            left: 0;
-            background-color: white;
-            transition: width 0.3s ease;
-        }
+.work-panel-num {
+    font-family: 'EB Garamond', serif;
+    font-size: clamp(5rem, 10vw, 9rem);
+    font-weight: 400;
+    line-height: 1;
+    color: rgba(255,255,255,0.04);
+    letter-spacing: -0.03em;
+    position: absolute;
+    top: 3rem; left: 3rem;
+    pointer-events: none;
+    user-select: none;
+}
+.work-panel-tag {
+    font-size: .48rem;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 1.4rem;
+}
+.work-panel-title {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 900;
+    letter-spacing: -.04em;
+    line-height: .9;
+    text-transform: uppercase;
+    margin-bottom: 1.8rem;
+}
+.work-panel-concept {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: clamp(.95rem, 1.4vw, 1.15rem);
+    line-height: 1.75;
+    color: rgba(240,236,228,0.42);
+    max-width: 32ch;
+    margin-bottom: 2.5rem;
+}
+.work-panel-meta {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+.work-panel-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+.work-panel-meta-label {
+    font-size: .44rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+}
+.work-panel-meta-val {
+    font-size: .75rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+}
+.work-panel-line {
+    position: absolute;
+    bottom: 4rem; right: 4rem;
+    width: 2rem; height: 1px;
+    background: rgba(255,255,255,0.12);
+}
 
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-        }
-
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-        .animate-spin-slow {
-            animation: spin 12s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* ============================================
-           WORKS SECTION — 追加スタイル
-           (既存のスタイルには一切触れていません)
-        ============================================ */
-        #works-section {
-            border-top: 1px solid rgba(255,255,255,0.06);
-        }
-
-        /* --- フィルターバー --- */
-        .works-filter-bar {
-            display: flex;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            padding: 0 1rem;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            gap: 0;
-        }
-        .works-filter-bar::-webkit-scrollbar { display: none; }
-
-        .works-filter-btn {
-            background: none;
-            border: none;
-            border-right: 1px solid rgba(255,255,255,0.06);
-            color: rgba(255,255,255,0.35);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.6rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            padding: 1rem 1.2rem;
-            cursor: pointer;
-            transition: all 0.25s;
-            white-space: nowrap;
-            flex-shrink: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .works-filter-btn:first-child { border-left: 1px solid rgba(255,255,255,0.06); }
-        .works-filter-btn:hover,
-        .works-filter-btn.active {
-            background: rgba(255,255,255,0.07);
-            color: #fff;
-        }
-
-        /* --- グリッド: デスクトップ (768px+) --- */
-        .works-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 1px;
-            background: rgba(255,255,255,0.04);
-        }
-        .work-card:nth-child(1) { grid-column: span 7; aspect-ratio: 16/9; }
-        .work-card:nth-child(2) { grid-column: span 5; aspect-ratio: 4/3; }
-        .work-card:nth-child(3) { grid-column: span 4; aspect-ratio: 1/1; }
-        .work-card:nth-child(4) { grid-column: span 4; aspect-ratio: 1/1; }
-        .work-card:nth-child(5) { grid-column: span 4; aspect-ratio: 1/1; }
-        .work-card:nth-child(6) { grid-column: span 5; aspect-ratio: 4/3; }
-        .work-card:nth-child(7) { grid-column: span 7; aspect-ratio: 16/9; }
-
-        /* --- グリッド: タブレット (480px〜767px) --- */
-        @media (max-width: 767px) {
-            .works-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .work-card:nth-child(1) { grid-column: span 2; aspect-ratio: 16/9; }
-            .work-card:nth-child(2) { grid-column: span 1; aspect-ratio: 3/4; }
-            .work-card:nth-child(3) { grid-column: span 1; aspect-ratio: 3/4; }
-            .work-card:nth-child(4) { grid-column: span 1; aspect-ratio: 1/1; }
-            .work-card:nth-child(5) { grid-column: span 1; aspect-ratio: 1/1; }
-            .work-card:nth-child(6) { grid-column: span 2; aspect-ratio: 16/9; }
-            .work-card:nth-child(7) { grid-column: span 2; aspect-ratio: 16/9; }
-        }
-
-        /* --- グリッド: スマートフォン (〜479px) --- */
-        @media (max-width: 479px) {
-            .works-grid {
-                grid-template-columns: 1fr;
-            }
-            .work-card:nth-child(n) {
-                grid-column: span 1;
-                aspect-ratio: 4/3;
-            }
-        }
-
-        /* --- カード共通 --- */
-        .work-card {
-            background: #050505;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        .work-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .work-card canvas {
-            width: 100%; height: 100%;
-            display: block;
-            transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
-        }
-        .work-card:hover canvas,
-        .work-card.touch-active canvas {
-            transform: scale(1.04);
-        }
-
-        /* オーバーレイ: PCはhover、SPは常時薄く表示 */
-        .work-card-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.15) 55%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 1.5rem;
-        }
-        .work-card:hover .work-card-overlay,
-        .work-card.touch-active .work-card-overlay { opacity: 1; }
-
-        /* スマートフォンではタイトルを常時表示 */
-        @media (max-width: 767px) {
-            .work-card-overlay {
-                opacity: 1;
-                background: linear-gradient(to top, rgba(5,5,5,0.88) 0%, rgba(5,5,5,0.1) 60%, transparent 100%);
-            }
-            .work-card-overlay { padding: 1rem; }
-        }
-
-        .work-card-index {
-            position: absolute;
-            top: 1rem; left: 1rem;
-            font-size: 0.55rem;
-            letter-spacing: 0.2em;
-            opacity: 0.3;
-            color: #fff;
-        }
-        .work-card-tag {
-            position: absolute;
-            top: 1rem; right: 1rem;
-            font-size: 0.5rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            border: 1px solid rgba(255,255,255,0.15);
-            padding: 0.25rem 0.6rem;
-            color: rgba(255,255,255,0.6);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        .work-card:hover .work-card-tag,
-        .work-card.touch-active .work-card-tag { opacity: 1; }
-        @media (max-width: 767px) {
-            .work-card-tag { opacity: 0.7; }
-        }
-
-        .work-card-title {
-            font-size: clamp(1.2rem, 4vw, 2.4rem);
-            font-weight: 900;
-            letter-spacing: -0.02em;
-            line-height: 1;
-            transform: translateY(8px);
-            transition: transform 0.4s ease;
-        }
-        .work-card:hover .work-card-title,
-        .work-card.touch-active .work-card-title { transform: translateY(0); }
-        @media (max-width: 767px) {
-            .work-card-title { transform: translateY(0); font-size: clamp(1rem, 5vw, 1.6rem); }
-        }
-
-        .work-card-concept {
-            font-size: 0.68rem;
-            font-weight: 300;
-            line-height: 1.7;
-            color: rgba(255,255,255,0.55);
-            margin-top: 0.5rem;
-            opacity: 0;
-            transform: translateY(6px);
-            transition: opacity 0.4s 0.05s, transform 0.4s 0.05s;
-        }
-        .work-card:hover .work-card-concept,
-        .work-card.touch-active .work-card-concept { opacity: 1; transform: translateY(0); }
-        /* SPでは概念文を非表示（タイトルとメタのみ） */
-        @media (max-width: 479px) {
-            .work-card-concept { display: none; }
-        }
-
-        .work-card-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            margin-top: 0.6rem;
-            font-size: 0.55rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.35);
-            opacity: 0;
-            transition: opacity 0.4s 0.1s;
-        }
-        .work-card:hover .work-card-meta,
-        .work-card.touch-active .work-card-meta { opacity: 1; }
-        @media (max-width: 767px) {
-            .work-card-meta { opacity: 0.6; }
-        }
-        .work-card-meta::before {
-            content: '';
-            display: block;
-            width: 1.2rem; height: 1px;
-            background: rgba(255,255,255,0.3);
-        }
-
-        /* --- Worksヘッダー SP対応 --- */
-        @media (max-width: 640px) {
-            #works-header {
-                padding: 3rem 1.25rem 2rem;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-            .works-filter-btn {
-                padding: 0.9rem 1rem;
-                font-size: 0.55rem;
-            }
-        }
-    </style>
+/* SP */
+@media (max-width: 767px) {
+    .work-panel { flex-direction: column; height: auto; }
+    .work-panel-canvas { width: 100%; height: 56vw; }
+    .work-panel-info { width: 100%; border-left: none; border-top: 1px solid rgba(255,255,255,0.05); padding: 2rem 1.5rem; }
+    .work-panel-num { font-size: 5rem; top: 1.5rem; left: 1.5rem; }
+    .work-panel-line { display: none; }
+}
+</style>
 </head>
 <body>
 
-    <div class="custom-cursor" id="cursor"></div>
+<div class="custom-cursor" id="cursor"></div>
 
-    <header class="fixed top-0 left-0 w-full z-50 p-8 flex justify-between items-center">
-        <div class="text-2xl font-black tracking-tighter uppercase">VIVID.</div>
-        <nav class="hidden md:flex space-x-12 text-sm font-medium tracking-widest uppercase">
-            <a href="#" class="nav-link">Vision</a>
-            <a href="#" class="nav-link">Studio</a>
-            <a href="#" class="nav-link">Contact</a>
-        </nav>
-        <button class="bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-zinc-200 transition">Menu</button>
-    </header>
+<!-- ヘッダー -->
+<header class="fixed top-0 left-0 w-full z-50 p-8">
+    <div class="text-2xl font-black tracking-tighter uppercase">VIVID.</div>
+</header>
 
-    <section class="canvas-container" id="hero-section">
-        <div class="hero-text">
-            <h1 class="hero-title">IMAGINATION<br>UNBOUND</h1>
-        </div>
-        
-        <div id="antigravity-canvas"></div>
+<!-- HERO -->
+<section class="canvas-container" id="hero-section">
+    <div class="hero-text">
+        <h1 class="hero-title">IMAGINATION<br>UNBOUND</h1>
+    </div>
+    <div id="antigravity-canvas"></div>
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-center z-20">
+        <p class="text-xs tracking-[0.3em] uppercase opacity-40 mb-4">Magnetic Interaction</p>
+        <div class="w-px h-12 bg-white/20 mx-auto"></div>
+    </div>
+</section>
 
-        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-center z-20">
-            <p class="text-xs tracking-[0.3em] uppercase opacity-40 mb-4">Magnetic Interaction</p>
-            <div class="w-px h-12 bg-white/20 mx-auto"></div>
-        </div>
-    </section>
-
-    <section class="py-32 px-8 max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-24 items-center">
-            <div>
-                <h2 class="text-5xl md:text-7xl font-bold mb-8 leading-tight">WE DEFINE<br>THE FUTURE<br>OF EXPERIENCE.</h2>
-                <p class="text-zinc-400 text-lg leading-relaxed mb-12">
-                    既存の枠組みを破壊し、デジタルとリアルの境界線を曖昧にする。VIVID.は、感情を揺さぶる次世代のインタラクティブ・デザインを追求します。
-                </p>
-                <div class="flex space-x-4">
-                    <div class="px-6 py-4 glass-card inline-block">
-                        <span class="block text-2xl font-bold">01.</span>
-                        <span class="text-[10px] uppercase tracking-widest text-zinc-500">Innovation</span>
-                    </div>
-                    <div class="px-6 py-4 glass-card inline-block">
-                        <span class="block text-2xl font-bold">02.</span>
-                        <span class="text-[10px] uppercase tracking-widest text-zinc-500">Elegance</span>
-                    </div>
-                </div>
-            </div>
-            <div class="relative aspect-square glass-card flex items-center justify-center overflow-hidden group">
-                <svg viewBox="0 0 200 200" class="w-64 h-64 opacity-20 group-hover:opacity-40 transition-opacity duration-700 animate-spin-slow">
-                    <circle cx="100" cy="100" r="80" stroke="white" stroke-width="0.5" fill="none" />
-                    <rect x="60" y="60" width="80" height="80" stroke="white" stroke-width="0.5" fill="none" />
-                </svg>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <p class="text-[10px] uppercase tracking-[0.5em] font-light">The Core Vision</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============================================
-         WORKS SECTION — ここから追加
-    ============================================ -->
-    <section id="works-section">
-
-        <!-- ヘッダー -->
-        <div id="works-header" class="px-8 py-16 max-w-7xl mx-auto flex items-end justify-between">
-            <div>
-                <p class="text-[10px] tracking-[0.4em] uppercase text-zinc-500 mb-4">Selected Works</p>
-                <h2 class="text-5xl md:text-7xl font-black leading-none tracking-tight">WORKS</h2>
-            </div>
-            <p class="text-zinc-600 text-xs tracking-widest uppercase text-right hidden md:block">
-                Digital Installation<br>Interactive Art<br>Experience Design
+<!-- VISION -->
+<section class="py-32 px-8 max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-24 items-center">
+        <div>
+            <h2 class="text-5xl md:text-7xl font-bold mb-8 leading-tight">WE DEFINE<br>THE FUTURE<br>OF EXPERIENCE.</h2>
+            <p class="text-zinc-400 text-lg leading-relaxed mb-12">
+                既存の枠組みを破壊し、デジタルとリアルの境界線を曖昧にする。VIVID.は、感情を揺さぶる次世代のインタラクティブ・デザインを追求します。
             </p>
+
         </div>
-
-        <!-- フィルター -->
-        <div class="works-filter-bar">
-            <button class="works-filter-btn active" data-filter="all">All</button>
-            <button class="works-filter-btn" data-filter="installation">Installation</button>
-            <button class="works-filter-btn" data-filter="interactive">Interactive</button>
-            <button class="works-filter-btn" data-filter="spatial">Spatial</button>
-            <button class="works-filter-btn" data-filter="generative">Generative</button>
-        </div>
-
-        <!-- グリッド -->
-        <div class="works-grid" id="worksGrid"></div>
-
-    </section>
-    <!-- WORKS SECTION — ここまで -->
-
-    <footer class="py-20 px-8 border-t border-white/10">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-12">
-            <div>
-                <h3 class="text-8xl font-black opacity-10 mb-8">VIVID.</h3>
-                <p class="text-zinc-500 text-sm">&copy; 2024 VIVID. All rights reserved.</p>
-            </div>
-            <div class="text-right">
-                <p class="text-xl mb-4">Let's build something vivid.</p>
-                <a href="/cdn-cgi/l/email-protection#f69e939a9a99b6809f809f92d89f9895" class="text-sm underline underline-offset-8 decoration-zinc-700 hover:decoration-white transition"><span class="__cf_email__" data-cfemail="f39b969f9f9cb3859a859a97dd9a9d90">[email&#160;protected]</span></a>
+        <div class="relative aspect-square glass-card flex items-center justify-center overflow-hidden group">
+            <svg viewBox="0 0 200 200" class="w-64 h-64 opacity-20 group-hover:opacity-40 transition-opacity duration-700 animate-spin-slow">
+                <circle cx="100" cy="100" r="80" stroke="white" stroke-width="0.5" fill="none" />
+                <rect x="60" y="60" width="80" height="80" stroke="white" stroke-width="0.5" fill="none" />
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <p class="text-[10px] uppercase tracking-[0.5em] font-light">The Core Vision</p>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        const cursor = document.getElementById('cursor');
-        let hue = 0;
-        let mouseX = -1000;
-        let mouseY = -1000;
+<!-- 01. INNOVATION -->
+<section id="innovation">
 
-        // カーソル追従と色の変化
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            hue = (hue + 1) % 360;
-            const color = `hsla(${hue}, 80%, 70%, 0.4)`;
-            
-            gsap.to(cursor, {
-                x: mouseX,
-                y: mouseY,
-                duration: 0.8,
-                ease: "power2.out",
-                background: `radial-gradient(circle, ${color} 0%, rgba(255,255,255,0) 70%)`
+    <div class="inn-label inn-reveal">
+        <span class="inn-num">01.</span>
+        <div class="inn-title-wrap">
+            <span class="inn-eyebrow">Process / Origin</span>
+            <h2 class="inn-title">Innovation</h2>
+        </div>
+    </div>
+
+    <div class="inn-quote inn-reveal">
+        <p>An idea is a scar<br>left by imagination.<br>
+        <span style="font-size:.85em;opacity:.55">— fragment, sketchbook #04</span></p>
+    </div>
+
+    <div class="sketch-stage" id="sketchStage"></div>
+
+    <div class="inn-fragments inn-reveal">
+        <div class="inn-fragment">
+            <span class="inn-frag-label">Note — 001</span>
+            <p class="inn-frag-text"><span class="inn-frag-dash"></span>光が重力に従わなかったら、観客はどこに立てばいい？</p>
+        </div>
+        <div class="inn-fragment">
+            <span class="inn-frag-label">Note — 002</span>
+            <p class="inn-frag-text"><span class="inn-frag-dash"></span>失敗 #12 — でもこの影は残す。これが作品の核になるかもしれない。</p>
+        </div>
+        <div class="inn-fragment">
+            <span class="inn-frag-label">Note — 003</span>
+            <p class="inn-frag-text"><span class="inn-frag-dash"></span>素材は消えていい。残るのは感覚だけでいい。</p>
+        </div>
+    </div>
+
+    <div class="inn-closing inn-reveal">
+        <p class="inn-closing-text">Every finished piece<br>carries 100 abandoned sketches.</p>
+        <div class="inn-closing-count">
+            Sketchbooks — 12<br>
+            Abandoned ideas — 340+<br>
+            What survived — the work
+        </div>
+    </div>
+
+</section>
+
+<!-- WORKS -->
+<section id="works-section">
+
+    <div class="inn-label inn-reveal">
+        <span class="inn-num">02.</span>
+        <div class="inn-title-wrap">
+            <span class="inn-eyebrow">Selected Works</span>
+            <h2 class="inn-title">Works</h2>
+        </div>
+    </div>
+
+    <div class="inn-quote inn-reveal">
+        <p>The work is not finished<br>until the audience completes it.<br>
+        <span style="font-size:.85em;opacity:.55">— VIVID. studio note</span></p>
+    </div>
+
+    <div class="works-stack" id="worksStack"></div>
+
+</section>
+
+<!-- FOOTER -->
+<footer class="py-20 px-8 border-t border-white/10">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-12">
+        <div>
+            <h3 class="text-8xl font-black opacity-10 mb-8">VIVID.</h3>
+            <p class="text-zinc-500 text-sm">&copy; 2024 VIVID. All rights reserved.</p>
+        </div>
+        <div class="text-right">
+            <p class="text-xl mb-4">Let's build something vivid.</p>
+            <a href="mailto:hello@vivid.inc" class="text-sm underline underline-offset-8 decoration-zinc-700 hover:decoration-white transition">hello@vivid.inc</a>
+        </div>
+    </div>
+</footer>
+
+<!-- 既存 JS -->
+<script>
+var cursor = document.getElementById('cursor');
+var hue = 0;
+var mouseX = -1000, mouseY = -1000;
+
+document.addEventListener('mousemove', function(e) {
+    mouseX = e.clientX; mouseY = e.clientY;
+    hue = (hue + 1) % 360;
+    var color = 'hsla('+hue+',80%,70%,0.4)';
+    gsap.to(cursor, {
+        x: mouseX, y: mouseY, duration: 0.8, ease: "power2.out",
+        background: 'radial-gradient(circle,'+color+' 0%,rgba(255,255,255,0) 70%)'
+    });
+});
+
+function initAntigravity() {
+    var Engine=Matter.Engine, Render=Matter.Render, Runner=Matter.Runner;
+    var Bodies=Matter.Bodies, Composite=Matter.Composite, Events=Matter.Events, Common=Matter.Common;
+    var container = document.getElementById('antigravity-canvas');
+    var width = container.clientWidth, height = container.clientHeight;
+    var engine = Engine.create(); engine.gravity.y = 0;
+    var render = Render.create({ element: container, engine: engine,
+        options: { width:width, height:height, wireframes:false, background:'transparent', pixelRatio:window.devicePixelRatio }
+    });
+    var wt = 100;
+    var walls = [
+        Bodies.rectangle(width/2,-wt/2,width,wt,{isStatic:true,render:{visible:false}}),
+        Bodies.rectangle(width/2,height+wt/2,width,wt,{isStatic:true,render:{visible:false}}),
+        Bodies.rectangle(-wt/2,height/2,wt,height,{isStatic:true,render:{visible:false}}),
+        Bodies.rectangle(width+wt/2,height/2,wt,height,{isStatic:true,render:{visible:false}})
+    ];
+    var orbs = [];
+    for (var i=0; i<20; i++) {
+        var r = Common.random(15,45);
+        var orb = Bodies.circle(Common.random(0,width), Common.random(0,height), r, {
+            restitution:0.9, frictionAir:0.04,
+            render:{fillStyle:'rgba(255,255,255,0.03)',strokeStyle:'rgba(255,255,255,0.1)',lineWidth:1}
+        });
+        orb.targetAlpha=0.03; orb.currentAlpha=0.03; orbs.push(orb);
+    }
+    Composite.add(engine.world, walls.concat(orbs));
+    Events.on(engine, 'beforeUpdate', function() {
+        orbs.forEach(function(orb) {
+            var dx=orb.position.x-mouseX, dy=orb.position.y-mouseY;
+            var dist=Math.sqrt(dx*dx+dy*dy);
+            var tr=orb.circleRadius+50;
+            if (dist<tr) {
+                var intensity=(tr-dist)/tr;
+                orb.targetAlpha=0.3+intensity*0.5;
+                orb.render.strokeStyle='hsla('+hue+',100%,80%,'+(orb.targetAlpha+0.2)+')';
+                orb.render.lineWidth=2+intensity*4;
+                orb.render.fillStyle='hsla('+hue+',80%,60%,'+orb.targetAlpha+')';
+            } else {
+                orb.targetAlpha=0.03;
+                orb.render.strokeStyle='rgba(255,255,255,0.1)';
+                orb.render.lineWidth=1;
+                orb.render.fillStyle='rgba(255,255,255,'+orb.currentAlpha+')';
+            }
+            orb.currentAlpha+=(orb.targetAlpha-orb.currentAlpha)*0.1;
+            if (dist<350) {
+                var ff=(350-dist)/350, fm=ff*0.0008*orb.mass;
+                Matter.Body.applyForce(orb,orb.position,{x:(dx/dist)*fm,y:(dy/dist)*fm});
+            }
+            Matter.Body.applyForce(orb,orb.position,{
+                x:(Math.random()-0.5)*0.00008*orb.mass,
+                y:(Math.random()-0.5)*0.00008*orb.mass
             });
         });
+    });
+    Render.run(render); Runner.run(Runner.create(), engine);
+    window.addEventListener('resize', function() {
+        render.canvas.width=container.clientWidth;
+        render.canvas.height=container.clientHeight;
+    });
+}
 
-        const initAntigravity = () => {
-            const { Engine, Render, Runner, Bodies, Composite, Events, Common } = Matter;
+window.onload = function() {
+    initAntigravity();
+    gsap.from(".hero-title", { duration:3, opacity:0, y:30, ease:"power3.out" });
+};
+</script>
 
-            const container = document.getElementById('antigravity-canvas');
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-
-            const engine = Engine.create();
-            engine.gravity.y = 0;
-
-            const render = Render.create({
-                element: container,
-                engine: engine,
-                options: {
-                    width: width,
-                    height: height,
-                    wireframes: false,
-                    background: 'transparent',
-                    pixelRatio: window.devicePixelRatio
-                }
-            });
-
-            const wallThickness = 100;
-            const walls = [
-                Bodies.rectangle(width / 2, -wallThickness/2, width, wallThickness, { isStatic: true, render: { visible: false } }),
-                Bodies.rectangle(width / 2, height + wallThickness/2, width, wallThickness, { isStatic: true, render: { visible: false } }),
-                Bodies.rectangle(-wallThickness/2, height / 2, wallThickness, height, { isStatic: true, render: { visible: false } }),
-                Bodies.rectangle(width + wallThickness/2, height / 2, wallThickness, height, { isStatic: true, render: { visible: false } })
-            ];
-
-            const orbs = [];
-            const orbCount = 20;
-            for (let i = 0; i < orbCount; i++) {
-                const radius = Common.random(15, 45);
-                const orb = Bodies.circle(
-                    Common.random(0, width),
-                    Common.random(0, height),
-                    radius,
-                    {
-                        restitution: 0.9,
-                        frictionAir: 0.04,
-                        render: {
-                            fillStyle: 'rgba(255, 255, 255, 0.03)',
-                            strokeStyle: 'rgba(255, 255, 255, 0.1)',
-                            lineWidth: 1
-                        }
-                    }
-                );
-                
-                orb.targetAlpha = 0.03;
-                orb.currentAlpha = 0.03;
-                orb.isGlowing = false;
-
-                orbs.push(orb);
-            }
-
-            Composite.add(engine.world, [...walls, ...orbs]);
-
-            Events.on(engine, 'beforeUpdate', () => {
-                orbs.forEach(orb => {
-                    const dx = orb.position.x - mouseX;
-                    const dy = orb.position.y - mouseY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    const repelRadius = 350; 
-                    const touchRadius = orb.circleRadius + 50;
-
-                    if (distance < touchRadius) {
-                        orb.isGlowing = true;
-                        const intensity = (touchRadius - distance) / touchRadius;
-                        const orbHue = hue; 
-                        orb.targetAlpha = 0.3 + (intensity * 0.5);
-                        orb.render.strokeStyle = `hsla(${orbHue}, 100%, 80%, ${orb.targetAlpha + 0.2})`;
-                        orb.render.lineWidth = 2 + (intensity * 4);
-                        orb.render.fillStyle = `hsla(${orbHue}, 80%, 60%, ${orb.targetAlpha})`;
-                    } else {
-                        orb.isGlowing = false;
-                        orb.targetAlpha = 0.03;
-                        orb.render.strokeStyle = `rgba(255, 255, 255, 0.1)`;
-                        orb.render.lineWidth = 1;
-                        orb.render.fillStyle = `rgba(255, 255, 255, ${orb.currentAlpha})`;
-                    }
-
-                    orb.currentAlpha += (orb.targetAlpha - orb.currentAlpha) * 0.1;
-
-                    if (distance < repelRadius) {
-                        const forceFactor = (repelRadius - distance) / repelRadius;
-                        const forceMagnitude = forceFactor * 0.0008 * orb.mass;
-                        Matter.Body.applyForce(orb, orb.position, {
-                            x: (dx / distance) * forceMagnitude,
-                            y: (dy / distance) * forceMagnitude
-                        });
-                    }
-
-                    Matter.Body.applyForce(orb, orb.position, {
-                        x: (Math.random() - 0.5) * 0.00008 * orb.mass,
-                        y: (Math.random() - 0.5) * 0.00008 * orb.mass
-                    });
-                });
-            });
-
-            Render.run(render);
-            const runner = Runner.create();
-            Runner.run(runner, engine);
-
-            window.addEventListener('resize', () => {
-                render.canvas.width = container.clientWidth;
-                render.canvas.height = container.clientHeight;
-            });
-        };
-
-        window.onload = () => {
-            initAntigravity();
-            gsap.from(".hero-title", {
-                duration: 3,
-                opacity: 0,
-                y: 30,
-                ease: "power3.out"
-            });
-        };
-    </script>
-
-    <!-- ============================================
-         WORKS JS — 追加スクリプト
-    ============================================ -->
-    <script>
-        const worksData = [
-            {
-                id: '01', title: 'VOID', year: '2024', location: 'Tokyo',
-                tag: 'Installation', filter: 'installation',
-                concept: '空白の中に意味を見出す。光と闇の境界が溶け出し、観客は空間そのものの一部となる。存在と不在の狭間に漂う感覚的体験。',
-                palette: ['#08091a', '#1a1a5e', '#3333aa', '#5555ff', '#9999ff'], type: 'wave'
-            },
-            {
-                id: '02', title: 'PULSE', year: '2024', location: 'Berlin',
-                tag: 'Interactive', filter: 'interactive',
-                concept: '都市の鼓動を可視化する。センサーが収集したリアルタイムデータが音と光に変換され、生きている都市の呼吸を感じさせる。',
-                palette: ['#1a0800', '#4d1500', '#bb3300', '#ff5500', '#ffaa55'], type: 'pulse'
-            },
-            {
-                id: '03', title: 'ECHO', year: '2023', location: 'Kyoto',
-                tag: 'Spatial', filter: 'spatial',
-                concept: '記憶の残像が空間に漂う。過去と現在が交差し、時間の層が重なり合う。',
-                palette: ['#080f08', '#0d330d', '#1a661a', '#33aa33', '#77dd77'], type: 'grid'
-            },
-            {
-                id: '04', title: 'FLUX', year: '2023', location: 'Seoul',
-                tag: 'Generative', filter: 'generative',
-                concept: '秩序と混沌の間で揺れ動く粒子。アルゴリズムが生成する予測不可能な美しさ。',
-                palette: ['#15001a', '#3d0050', '#7700aa', '#bb00ee', '#ee66ff'], type: 'particles'
-            },
-            {
-                id: '05', title: 'STILL', year: '2022', location: 'Osaka',
-                tag: 'Installation', filter: 'installation',
-                concept: '動きの中の静寂。ノイズに満ちた現代において、停止することの意味を問いかける瞑想的空間。',
-                palette: ['#0a0a0a', '#1a1a1a', '#2e2e2e', '#555555', '#999999'], type: 'noise'
-            },
-            {
-                id: '06', title: 'DRIFT', year: '2022', location: 'Singapore',
-                tag: 'Interactive', filter: 'interactive',
-                concept: '漂うデータの断片が物語を形成する。訪れるたびに異なる表情を見せる、生きたインスタレーション。',
-                palette: ['#001515', '#003535', '#006666', '#00aaaa', '#55eeee'], type: 'wave'
-            },
-            {
-                id: '07', title: 'ORIGIN', year: '2021', location: 'Tokyo',
-                tag: 'Spatial', filter: 'spatial',
-                concept: 'すべての始まりへ。デジタルと物質の境界が崩れる瞬間を体験する、VIVID.の原点となる作品。',
-                palette: ['#151000', '#3d2e00', '#886600', '#ccaa00', '#ffdd44'], type: 'particles'
-            }
-        ];
-
-        /* --- Canvas renderers --- */
-        function drawWave(canvas, palette) {
-            const ctx = canvas.getContext('2d');
-            const W = canvas.width, H = canvas.height, t = Date.now() * 0.001;
-            ctx.fillStyle = palette[0]; ctx.fillRect(0, 0, W, H);
-            for (let i = 0; i < 5; i++) {
-                ctx.beginPath(); ctx.moveTo(0, H / 2);
-                for (let x = 0; x <= W; x += 4) {
-                    const y = H/2
-                        + Math.sin(x * 0.01 + t + i * 0.9) * H * 0.13 * (1 - i * 0.12)
-                        + Math.sin(x * 0.025 - t * 1.3 + i) * H * 0.06;
-                    ctx.lineTo(x, y);
-                }
-                ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-                ctx.fillStyle = palette[i + 1] + '55'; ctx.fill();
-            }
+<!-- INNOVATION JS -->
+<script>
+(function() {
+    function sketchLines(cv, seed) {
+        var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+        ctx.fillStyle='#080808'; ctx.fillRect(0,0,W,H);
+        ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
+        for (var y=12;y<H;y+=18){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+        var r=seed;
+        function rnd(){r=(r*16807)%2147483647;return(r-1)/2147483646;}
+        for (var s=0;s<18;s++) {
+            var x0=rnd()*W,y0=rnd()*H,len=40+rnd()*120,ang=rnd()*Math.PI*2;
+            var al=0.05+rnd()*0.25;
+            ctx.beginPath(); ctx.moveTo(x0,y0);
+            for (var p=0;p<8;p++){x0+=Math.cos(ang+(rnd()-.5)*.6)*(len/8);y0+=Math.sin(ang+(rnd()-.5)*.6)*(len/8);ctx.lineTo(x0,y0);}
+            ctx.strokeStyle='rgba(220,210,190,'+al+')'; ctx.lineWidth=0.5+rnd()*1.5; ctx.stroke();
         }
+        for (var c=0;c<4;c++){
+            ctx.beginPath(); ctx.arc(rnd()*W,rnd()*H,10+rnd()*60,rnd()*Math.PI,rnd()*Math.PI*2);
+            ctx.strokeStyle='rgba(200,195,180,'+(0.04+rnd()*.12)+')'; ctx.lineWidth=0.5+rnd(); ctx.stroke();
+        }
+        var mx=20+rnd()*(W-40),my=20+rnd()*(H-40),ms=6+rnd()*10;
+        ctx.strokeStyle='rgba(200,180,150,0.35)'; ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(mx-ms,my);ctx.lineTo(mx+ms,my);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(mx,my-ms);ctx.lineTo(mx,my+ms);ctx.stroke();
+    }
+    function sketchGrid(cv, seed) {
+        var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+        ctx.fillStyle='#070707'; ctx.fillRect(0,0,W,H);
+        var r=seed; function rnd(){r=(r*16807)%2147483647;return(r-1)/2147483646;}
+        var gx=24,gy=24;
+        ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=.5;
+        for (var x=0;x<W;x+=gx){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+        for (var y=0;y<H;y+=gy){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+        for (var b=0;b<5;b++){
+            var bx=Math.round(rnd()*W/gx)*gx, by=Math.round(rnd()*H/gy)*gy;
+            var bw=(2+Math.floor(rnd()*5))*gx, bh=(2+Math.floor(rnd()*4))*gy;
+            ctx.strokeStyle='rgba(210,200,180,'+(0.06+rnd()*.18)+')'; ctx.lineWidth=.5+rnd();
+            ctx.strokeRect(bx,by,bw,bh);
+        }
+        for (var a=0;a<3;a++){
+            var ax=rnd()*W*.7,ay=rnd()*H*.7,adx=30+rnd()*60,ady=(rnd()-.5)*50;
+            ctx.strokeStyle='rgba(180,165,130,0.2)'; ctx.lineWidth=.8;
+            ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax+adx,ay+ady);ctx.stroke();
+            var aang=Math.atan2(ady,adx);
+            ctx.beginPath();
+            ctx.moveTo(ax+adx,ay+ady);ctx.lineTo(ax+adx-8*Math.cos(aang-.4),ay+ady-8*Math.sin(aang-.4));
+            ctx.moveTo(ax+adx,ay+ady);ctx.lineTo(ax+adx-8*Math.cos(aang+.4),ay+ady-8*Math.sin(aang+.4));
+            ctx.stroke();
+        }
+    }
+    function sketchSplash(cv, seed) {
+        var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+        ctx.fillStyle='#060606'; ctx.fillRect(0,0,W,H);
+        var r=seed; function rnd(){r=(r*16807)%2147483647;return(r-1)/2147483646;}
+        var cx=W*.3+rnd()*W*.4, cy=H*.3+rnd()*H*.4;
+        var grad=ctx.createRadialGradient(cx,cy,0,cx,cy,60+rnd()*80);
+        grad.addColorStop(0,'rgba(200,190,170,0.14)'); grad.addColorStop(1,'rgba(200,190,170,0)');
+        ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(cx,cy,140,0,Math.PI*2); ctx.fill();
+        for (var d=0;d<30;d++){
+            var dx=cx+(rnd()-.5)*200, dy=cy+(rnd()-.5)*200;
+            ctx.beginPath();ctx.arc(dx,dy,rnd()*3,0,Math.PI*2);
+            ctx.fillStyle='rgba(200,185,160,'+(0.05+rnd()*.25)+')'; ctx.fill();
+        }
+        ctx.beginPath();
+        for (var i=0;i<32;i++){var ang=(i/32)*Math.PI*2,rad=30+rnd()*50;var px=cx+Math.cos(ang)*rad,py=cy+Math.sin(ang)*rad;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+        ctx.closePath(); ctx.strokeStyle='rgba(210,195,165,0.12)'; ctx.lineWidth=1; ctx.stroke();
+        for (var s=0;s<6;s++){
+            var sx=rnd()*W,sy2=rnd()*H;
+            ctx.beginPath();ctx.moveTo(sx,sy2);ctx.lineTo(sx+(rnd()-.5)*100,sy2+(rnd()-.5)*100);
+            ctx.strokeStyle='rgba(200,185,160,'+(0.04+rnd()*.1)+')'; ctx.lineWidth=.5+rnd(); ctx.stroke();
+        }
+    }
+    function sketchText(cv, seed) {
+        var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+        ctx.fillStyle='#070707'; ctx.fillRect(0,0,W,H);
+        var r=seed; function rnd(){r=(r*16807)%2147483647;return(r-1)/2147483646;}
+        ctx.strokeStyle='rgba(255,255,255,0.025)'; ctx.lineWidth=.5;
+        for (var y=28;y<H;y+=24){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+        var lines=['observation —','光の速度','if boundary = 0','// remove this','境界を壊す','∴ x → ∞','prototype #07','観客＝作品','delete / rebuild'];
+        for (var l=0;l<7;l++){
+            var lx=16+rnd()*30, ly=30+l*28+(rnd()-.5)*6;
+            ctx.save(); ctx.translate(lx,ly); ctx.rotate((rnd()-.5)*.03);
+            ctx.font=(9+rnd()*4)+'px serif';
+            ctx.fillStyle='rgba(210,200,175,'+(0.08+rnd()*.22)+')';
+            ctx.fillText(lines[l%lines.length],0,0); ctx.restore();
+        }
+        var sx=16, sy=30+Math.floor(rnd()*5)*28;
+        ctx.strokeStyle='rgba(180,160,130,0.3)'; ctx.lineWidth=.8;
+        ctx.beginPath();ctx.moveTo(sx,sy-4);ctx.lineTo(sx+80+rnd()*60,sy-4);ctx.stroke();
+    }
 
-        function drawPulse(canvas, palette) {
-            const ctx = canvas.getContext('2d');
-            const W = canvas.width, H = canvas.height, t = Date.now() * 0.002;
-            ctx.fillStyle = palette[0]; ctx.fillRect(0, 0, W, H);
-            for (let i = 0; i < 8; i++) {
-                const r = (Math.sin(t - i * 0.4) * 0.5 + 0.5) * Math.min(W, H) * 0.4 * (1 - i * 0.07);
-                ctx.beginPath(); ctx.arc(W/2, H/2, r, 0, Math.PI * 2);
-                const a = (1 - i / 8) * 0.6;
-                ctx.strokeStyle = palette[Math.min(i+1, palette.length-1)] + Math.floor(a*255).toString(16).padStart(2,'0');
-                ctx.lineWidth = 2; ctx.stroke();
+    var sketches = [
+        {fn:sketchLines, seed:31337, w:260,h:200, top:'8%',  left:'5%',  rot:-2.5, note:'光が重力に逆らう瞬間を探していた。',  tag:'SKETCH — 031'},
+        {fn:sketchGrid,  seed:99991, w:200,h:240, top:'5%',  left:'34%', rot:1.2,  note:'空間の分割。観客はどこに立つ？',      tag:'DIAGRAM — 007'},
+        {fn:sketchSplash,seed:54321, w:180,h:180, top:'42%', left:'20%', rot:-1,   note:'失敗 #12 — この影だけは残す。',        tag:'MARK — 012'},
+        {fn:sketchText,  seed:11111, w:220,h:195, top:'12%', left:'58%', rot:2,    note:'頭の中のノイズを書き出した夜。',        tag:'NOTE — 004'},
+        {fn:sketchLines, seed:77777, w:240,h:170, top:'52%', left:'50%', rot:-1.8, note:'素材は消えていい。感覚だけが残る。',    tag:'SKETCH — 058'},
+        {fn:sketchGrid,  seed:22222, w:170,h:210, top:'35%', left:'76%', rot:1.5,  note:'もし境界がゼロになったら？',           tag:'DIAGRAM — 019'}
+    ];
+
+    var stage = document.getElementById('sketchStage');
+    sketches.forEach(function(sk) {
+        var card = document.createElement('div');
+        card.className = 'sketch-card';
+        card.style.cssText = 'top:'+sk.top+';left:'+sk.left+';opacity:0;transform:rotate('+sk.rot+'deg) translateY(14px);transition:opacity .7s ease,transform .7s ease;';
+
+        var inner = document.createElement('div');
+        inner.className = 'sketch-inner';
+        inner.style.cssText = 'width:'+sk.w+'px;height:'+sk.h+'px;';
+
+        var cv = document.createElement('canvas');
+        cv.width=sk.w*2; cv.height=sk.h*2;
+        cv.style.cssText='width:'+sk.w+'px;height:'+sk.h+'px;display:block;';
+        sk.fn(cv, sk.seed);
+        inner.appendChild(cv);
+
+        var note = document.createElement('div');
+        note.className='sketch-note';
+        note.innerHTML='<span class="sketch-note-tag">'+sk.tag+'</span><span class="sketch-note-text">'+sk.note+'</span>';
+        inner.appendChild(note);
+        card.appendChild(inner);
+        stage.appendChild(card);
+
+        card.addEventListener('mouseenter', function() {
+            card.style.transform='rotate('+(sk.rot*.3)+'deg) translateY(-6px) scale(1.03)';
+        });
+        card.addEventListener('mouseleave', function() {
+            card.style.transform='rotate('+sk.rot+'deg)';
+        });
+    });
+
+    // scroll reveal — inn-reveal
+    var revObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) { e.target.classList.add('in'); revObs.unobserve(e.target); }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.inn-reveal').forEach(function(el) { revObs.observe(el); });
+
+    // scroll reveal — sketch cards
+    var cardObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e, i) {
+            if (e.isIntersecting) {
+                var el=e.target, rot=parseFloat(el.dataset.rot)||0;
+                setTimeout(function() {
+                    el.style.opacity='1';
+                    el.style.transform='rotate('+rot+'deg)';
+                }, i*80);
+                cardObs.unobserve(el);
             }
+        });
+    }, { threshold: 0.05 });
+    document.querySelectorAll('.sketch-card').forEach(function(c, i) {
+        c.dataset.rot = sketches[i] ? sketches[i].rot : 0;
+        cardObs.observe(c);
+    });
+})();
+</script>
+
+<!-- WORKS JS -->
+<script>
+(function() {
+    var worksData = [
+        {id:'01',title:'VOID',  year:'2024',location:'Tokyo',    tag:'Installation',
+         concept:'空白の中に意味を見出す。光と闇の境界が溶け出し、観客は空間そのものの一部となる。存在と不在の狭間に漂う感覚的体験。',
+         palette:['#08091a','#1a1a5e','#3333aa','#5555ff','#9999ff'],type:'wave'},
+        {id:'02',title:'PULSE', year:'2024',location:'Berlin',   tag:'Interactive',
+         concept:'都市の鼓動を可視化する。センサーが収集したリアルタイムデータが音と光に変換され、生きている都市の呼吸を感じさせる。',
+         palette:['#1a0800','#4d1500','#bb3300','#ff5500','#ffaa55'],type:'pulse'},
+        {id:'03',title:'ECHO',  year:'2023',location:'Kyoto',    tag:'Spatial',
+         concept:'記憶の残像が空間に漂う。過去と現在が交差し、時間の層が重なり合う。',
+         palette:['#080f08','#0d330d','#1a661a','#33aa33','#77dd77'],type:'grid'},
+        {id:'04',title:'FLUX',  year:'2023',location:'Seoul',    tag:'Generative',
+         concept:'秩序と混沌の間で揺れ動く粒子。アルゴリズムが生成する予測不可能な美しさ。',
+         palette:['#15001a','#3d0050','#7700aa','#bb00ee','#ee66ff'],type:'particles'},
+        {id:'05',title:'STILL', year:'2022',location:'Osaka',    tag:'Installation',
+         concept:'動きの中の静寂。ノイズに満ちた現代において、停止することの意味を問いかける瞑想的空間。',
+         palette:['#0a0a0a','#1a1a1a','#2e2e2e','#555555','#999999'],type:'noise'},
+        {id:'06',title:'DRIFT', year:'2022',location:'Singapore',tag:'Interactive',
+         concept:'漂うデータの断片が物語を形成する。訪れるたびに異なる表情を見せる、生きたインスタレーション。',
+         palette:['#001515','#003535','#006666','#00aaaa','#55eeee'],type:'wave'},
+        {id:'07',title:'ORIGIN',year:'2021',location:'Tokyo',    tag:'Spatial',
+         concept:'すべての始まりへ。デジタルと物質の境界が崩れる瞬間を体験する、VIVID.の原点となる作品。',
+         palette:['#151000','#3d2e00','#886600','#ccaa00','#ffdd44'],type:'particles'}
+    ];
+
+    function drawWave(cv,p){var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,t=Date.now()*.001;ctx.fillStyle=p[0];ctx.fillRect(0,0,W,H);for(var i=0;i<5;i++){ctx.beginPath();ctx.moveTo(0,H/2);for(var x=0;x<=W;x+=4){var y=H/2+Math.sin(x*.01+t+i*.9)*H*.13*(1-i*.12)+Math.sin(x*.025-t*1.3+i)*H*.06;ctx.lineTo(x,y);}ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=p[i+1]+'55';ctx.fill();}}
+    function drawPulse(cv,p){var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,t=Date.now()*.002;ctx.fillStyle=p[0];ctx.fillRect(0,0,W,H);for(var i=0;i<8;i++){var r=(Math.sin(t-i*.4)*.5+.5)*Math.min(W,H)*.4*(1-i*.07);ctx.beginPath();ctx.arc(W/2,H/2,r,0,Math.PI*2);var a=(1-i/8)*.6;ctx.strokeStyle=p[Math.min(i+1,p.length-1)]+Math.floor(a*255).toString(16).padStart(2,'0');ctx.lineWidth=2;ctx.stroke();}}
+    function drawGrid(cv,p){var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,t=Date.now()*.0008;ctx.fillStyle=p[0];ctx.fillRect(0,0,W,H);var cols=14,rows=10,cw=W/cols,ch=H/rows;for(var r=0;r<rows;r++){for(var c=0;c<cols;c++){var v=Math.sin(c*.5+t)*Math.cos(r*.5-t*.7);if(v>.15){var ci=Math.min(Math.floor((v+1)/2*(p.length-1)),p.length-1);ctx.fillStyle=p[ci]+'aa';ctx.fillRect(c*cw+3,r*ch+3,cw-6,ch-6);}}}}
+    function drawParticles(cv,p,pts){var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;ctx.fillStyle=p[0]+'18';ctx.fillRect(0,0,W,H);pts.forEach(function(pt){pt.x+=pt.vx;pt.y+=pt.vy;pt.life-=.004;if(pt.x<0||pt.x>W)pt.vx*=-1;if(pt.y<0||pt.y>H)pt.vy*=-1;if(pt.life<0)pt.life=1;var ci=Math.min(Math.floor(pt.life*(p.length-1)),p.length-1);ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2);ctx.fillStyle=p[ci]+Math.floor(pt.life*180).toString(16).padStart(2,'0');ctx.fill();});}
+    function drawNoise(cv,p){var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,t=Date.now()*.0005;var img=ctx.createImageData(W,H);for(var i=0;i<img.data.length;i+=4){var x=(i/4)%W,y=Math.floor((i/4)/W);var n=Math.sin(x*.04+t)*Math.cos(y*.03-t*.7)*.5+.5;var v=Math.floor(n*80+15);img.data[i]=img.data[i+1]=img.data[i+2]=v;img.data[i+3]=255;}ctx.putImageData(img,0,0);}
+
+    if ('ontouchstart' in window) {
+        document.body.style.cursor='auto';
+        var cur=document.getElementById('cursor');
+        if(cur) cur.style.display='none';
+    }
+
+    var stack = document.getElementById('worksStack');
+    worksData.forEach(function(w, idx) {
+        var panel = document.createElement('div');
+        panel.className = 'work-panel';
+
+        var canvasWrap = document.createElement('div');
+        canvasWrap.className = 'work-panel-canvas';
+        var cv = document.createElement('canvas');
+        cv.width = 1200; cv.height = 800;
+        canvasWrap.appendChild(cv);
+        panel.appendChild(canvasWrap);
+
+        var info = document.createElement('div');
+        info.className = 'work-panel-info';
+        info.innerHTML =
+            '<span class="work-panel-num">'+w.id+'</span>' +
+            '<span class="work-panel-tag">'+w.tag+'</span>' +
+            '<h3 class="work-panel-title">'+w.title+'</h3>' +
+            '<p class="work-panel-concept">'+w.concept+'</p>' +
+            '<div class="work-panel-meta">' +
+                '<div class="work-panel-meta-item"><span class="work-panel-meta-label">Location</span><span class="work-panel-meta-val">'+w.location+'</span></div>' +
+                '<div class="work-panel-meta-item"><span class="work-panel-meta-label">Year</span><span class="work-panel-meta-val">'+w.year+'</span></div>' +
+            '</div>' +
+            '<div class="work-panel-line"></div>';
+        panel.appendChild(info);
+        stack.appendChild(panel);
+
+        // draw loop
+        var pts = null;
+        if (w.type==='particles') {
+            pts = [];
+            for (var j=0; j<70; j++) pts.push({x:Math.random()*1200,y:Math.random()*800,vx:(Math.random()-.5)*1.4,vy:(Math.random()-.5)*1.4,r:Math.random()*3+1,life:Math.random()});
         }
-
-        function drawGrid(canvas, palette) {
-            const ctx = canvas.getContext('2d');
-            const W = canvas.width, H = canvas.height, t = Date.now() * 0.0008;
-            ctx.fillStyle = palette[0]; ctx.fillRect(0, 0, W, H);
-            const cols = 14, rows = 10, cw = W/cols, ch = H/rows;
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const v = Math.sin(c * 0.5 + t) * Math.cos(r * 0.5 - t * 0.7);
-                    if (v > 0.15) {
-                        const ci = Math.min(Math.floor((v+1)/2*(palette.length-1)), palette.length-1);
-                        ctx.fillStyle = palette[ci] + 'aa';
-                        ctx.fillRect(c*cw+3, r*ch+3, cw-6, ch-6);
-                    }
-                }
-            }
-        }
-
-        function drawParticles(canvas, palette, pts) {
-            const ctx = canvas.getContext('2d');
-            const W = canvas.width, H = canvas.height;
-            ctx.fillStyle = palette[0] + '18'; ctx.fillRect(0, 0, W, H);
-            pts.forEach(p => {
-                p.x += p.vx; p.y += p.vy; p.life -= 0.004;
-                if (p.x < 0 || p.x > W) p.vx *= -1;
-                if (p.y < 0 || p.y > H) p.vy *= -1;
-                if (p.life < 0) p.life = 1;
-                const ci = Math.min(Math.floor(p.life*(palette.length-1)), palette.length-1);
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-                ctx.fillStyle = palette[ci] + Math.floor(p.life*180).toString(16).padStart(2,'0');
-                ctx.fill();
-            });
-        }
-
-        function drawNoise(canvas, palette) {
-            const ctx = canvas.getContext('2d');
-            const W = canvas.width, H = canvas.height, t = Date.now() * 0.0005;
-            const img = ctx.createImageData(W, H);
-            for (let i = 0; i < img.data.length; i += 4) {
-                const x = (i/4) % W, y = Math.floor((i/4)/W);
-                const n = Math.sin(x*0.04+t)*Math.cos(y*0.03-t*0.7)*0.5+0.5;
-                const v = Math.floor(n*80+15);
-                img.data[i] = img.data[i+1] = img.data[i+2] = v;
-                img.data[i+3] = 255;
-            }
-            ctx.putImageData(img, 0, 0);
-        }
-
-        /* --- タッチデバイス: カーソル非表示 --- */
-        if ('ontouchstart' in window) {
-            document.body.style.cursor = 'auto';
-            const cur = document.getElementById('cursor');
-            if (cur) cur.style.display = 'none';
-        }
-
-        /* --- Build grid --- */
-        const grid = document.getElementById('worksGrid');
-
-        worksData.forEach((w, idx) => {
-            const card = document.createElement('div');
-            card.className = 'work-card';
-            card.dataset.filter = w.filter;
-            card.innerHTML = `
-                <div style="width:100%;height:100%;position:relative;overflow:hidden;">
-                    <canvas id="wc-${idx}" width="800" height="500"></canvas>
-                </div>
-                <span class="work-card-index">${w.id}</span>
-                <span class="work-card-tag">${w.tag}</span>
-                <div class="work-card-overlay">
-                    <h3 class="work-card-title">${w.title}</h3>
-                    <p class="work-card-concept">${w.concept}</p>
-                    <div class="work-card-meta">${w.location} — ${w.year}</div>
-                </div>
-            `;
-            grid.appendChild(card);
-
-            /* タッチ操作: tap でオーバーレイ表示 */
-            card.addEventListener('touchstart', () => {
-                document.querySelectorAll('.work-card.touch-active').forEach(c => {
-                    if (c !== card) c.classList.remove('touch-active');
-                });
-                card.classList.toggle('touch-active');
-            }, { passive: true });
-
-            const canvas = document.getElementById(`wc-${idx}`);
-            let pts = null;
-            if (w.type === 'particles') {
-                pts = Array.from({length: 55}, () => ({
-                    x: Math.random()*800, y: Math.random()*500,
-                    vx: (Math.random()-0.5)*1.2, vy: (Math.random()-0.5)*1.2,
-                    r: Math.random()*3+1, life: Math.random()
-                }));
-            }
-            (function loop() {
-                switch (w.type) {
-                    case 'wave':      drawWave(canvas, w.palette); break;
-                    case 'pulse':     drawPulse(canvas, w.palette); break;
-                    case 'grid':      drawGrid(canvas, w.palette); break;
-                    case 'particles': drawParticles(canvas, w.palette, pts); break;
-                    case 'noise':     drawNoise(canvas, w.palette); break;
-                }
+        (function(canvas,type,palette,particles){
+            function loop(){
+                if(type==='wave')drawWave(canvas,palette);
+                if(type==='pulse')drawPulse(canvas,palette);
+                if(type==='grid')drawGrid(canvas,palette);
+                if(type==='particles')drawParticles(canvas,palette,particles);
+                if(type==='noise')drawNoise(canvas,palette);
                 requestAnimationFrame(loop);
-            })();
-        });
+            }
+            loop();
+        })(cv, w.type, w.palette, pts);
+    });
 
-        /* --- Filter --- */
-        document.querySelectorAll('.works-filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.works-filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const f = btn.dataset.filter;
-                document.querySelectorAll('.work-card').forEach(c => {
-                    c.style.display = (f === 'all' || c.dataset.filter === f) ? '' : 'none';
-                });
-            });
+    // scroll reveal for panels
+    var panelObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) { e.target.classList.add('in'); panelObs.unobserve(e.target); }
         });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.work-panel').forEach(function(p) { panelObs.observe(p); });
+})();
+</script>
 
-        /* --- Scroll-triggered fade-in --- */
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach((e, i) => {
-                if (e.isIntersecting) {
-                    setTimeout(() => e.target.classList.add('visible'), i *
+</body>
+</html>
