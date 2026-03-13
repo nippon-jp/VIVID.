@@ -122,48 +122,48 @@
             border-top: 1px solid rgba(255,255,255,0.06);
         }
 
+        /* --- フィルターバー --- */
+        .works-filter-bar {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 0 1rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            gap: 0;
+        }
+        .works-filter-bar::-webkit-scrollbar { display: none; }
+
         .works-filter-btn {
             background: none;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: none;
+            border-right: 1px solid rgba(255,255,255,0.06);
             color: rgba(255,255,255,0.35);
             font-family: 'Inter', sans-serif;
             font-size: 0.6rem;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.15em;
             text-transform: uppercase;
-            padding: 0.5rem 1.2rem;
-            cursor: none;
+            padding: 1rem 1.2rem;
+            cursor: pointer;
             transition: all 0.25s;
             white-space: nowrap;
-            margin-right: -1px;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
         }
+        .works-filter-btn:first-child { border-left: 1px solid rgba(255,255,255,0.06); }
         .works-filter-btn:hover,
         .works-filter-btn.active {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.07);
             color: #fff;
-            border-color: rgba(255,255,255,0.3);
-            z-index: 1;
-            position: relative;
         }
 
+        /* --- グリッド: デスクトップ (768px+) --- */
         .works-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
             gap: 1px;
             background: rgba(255,255,255,0.04);
-        }
-
-        .work-card {
-            background: #050505;
-            position: relative;
-            overflow: hidden;
-            cursor: none;
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        .work-card.visible {
-            opacity: 1;
-            transform: translateY(0);
         }
         .work-card:nth-child(1) { grid-column: span 7; aspect-ratio: 16/9; }
         .work-card:nth-child(2) { grid-column: span 5; aspect-ratio: 4/3; }
@@ -173,15 +173,57 @@
         .work-card:nth-child(6) { grid-column: span 5; aspect-ratio: 4/3; }
         .work-card:nth-child(7) { grid-column: span 7; aspect-ratio: 16/9; }
 
+        /* --- グリッド: タブレット (480px〜767px) --- */
+        @media (max-width: 767px) {
+            .works-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .work-card:nth-child(1) { grid-column: span 2; aspect-ratio: 16/9; }
+            .work-card:nth-child(2) { grid-column: span 1; aspect-ratio: 3/4; }
+            .work-card:nth-child(3) { grid-column: span 1; aspect-ratio: 3/4; }
+            .work-card:nth-child(4) { grid-column: span 1; aspect-ratio: 1/1; }
+            .work-card:nth-child(5) { grid-column: span 1; aspect-ratio: 1/1; }
+            .work-card:nth-child(6) { grid-column: span 2; aspect-ratio: 16/9; }
+            .work-card:nth-child(7) { grid-column: span 2; aspect-ratio: 16/9; }
+        }
+
+        /* --- グリッド: スマートフォン (〜479px) --- */
+        @media (max-width: 479px) {
+            .works-grid {
+                grid-template-columns: 1fr;
+            }
+            .work-card:nth-child(n) {
+                grid-column: span 1;
+                aspect-ratio: 4/3;
+            }
+        }
+
+        /* --- カード共通 --- */
+        .work-card {
+            background: #050505;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .work-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         .work-card canvas {
             width: 100%; height: 100%;
             display: block;
             transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
         }
-        .work-card:hover canvas {
+        .work-card:hover canvas,
+        .work-card.touch-active canvas {
             transform: scale(1.04);
         }
 
+        /* オーバーレイ: PCはhover、SPは常時薄く表示 */
         .work-card-overlay {
             position: absolute;
             inset: 0;
@@ -191,73 +233,113 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            padding: 2rem;
+            padding: 1.5rem;
         }
-        .work-card:hover .work-card-overlay { opacity: 1; }
+        .work-card:hover .work-card-overlay,
+        .work-card.touch-active .work-card-overlay { opacity: 1; }
+
+        /* スマートフォンではタイトルを常時表示 */
+        @media (max-width: 767px) {
+            .work-card-overlay {
+                opacity: 1;
+                background: linear-gradient(to top, rgba(5,5,5,0.88) 0%, rgba(5,5,5,0.1) 60%, transparent 100%);
+            }
+            .work-card-overlay { padding: 1rem; }
+        }
 
         .work-card-index {
             position: absolute;
-            top: 1.2rem; left: 1.5rem;
-            font-size: 0.6rem;
+            top: 1rem; left: 1rem;
+            font-size: 0.55rem;
             letter-spacing: 0.2em;
             opacity: 0.3;
             color: #fff;
         }
         .work-card-tag {
             position: absolute;
-            top: 1.2rem; right: 1.5rem;
-            font-size: 0.55rem;
-            letter-spacing: 0.2em;
+            top: 1rem; right: 1rem;
+            font-size: 0.5rem;
+            letter-spacing: 0.15em;
             text-transform: uppercase;
             border: 1px solid rgba(255,255,255,0.15);
-            padding: 0.3rem 0.7rem;
+            padding: 0.25rem 0.6rem;
             color: rgba(255,255,255,0.6);
             opacity: 0;
             transition: opacity 0.4s;
         }
-        .work-card:hover .work-card-tag { opacity: 1; }
+        .work-card:hover .work-card-tag,
+        .work-card.touch-active .work-card-tag { opacity: 1; }
+        @media (max-width: 767px) {
+            .work-card-tag { opacity: 0.7; }
+        }
 
         .work-card-title {
-            font-size: clamp(1.6rem, 3vw, 2.6rem);
+            font-size: clamp(1.2rem, 4vw, 2.4rem);
             font-weight: 900;
             letter-spacing: -0.02em;
             line-height: 1;
-            transform: translateY(10px);
+            transform: translateY(8px);
             transition: transform 0.4s ease;
         }
-        .work-card:hover .work-card-title { transform: translateY(0); }
+        .work-card:hover .work-card-title,
+        .work-card.touch-active .work-card-title { transform: translateY(0); }
+        @media (max-width: 767px) {
+            .work-card-title { transform: translateY(0); font-size: clamp(1rem, 5vw, 1.6rem); }
+        }
 
         .work-card-concept {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 300;
-            line-height: 1.75;
+            line-height: 1.7;
             color: rgba(255,255,255,0.55);
-            margin-top: 0.6rem;
-            max-width: 44ch;
+            margin-top: 0.5rem;
             opacity: 0;
             transform: translateY(6px);
             transition: opacity 0.4s 0.05s, transform 0.4s 0.05s;
         }
-        .work-card:hover .work-card-concept { opacity: 1; transform: translateY(0); }
+        .work-card:hover .work-card-concept,
+        .work-card.touch-active .work-card-concept { opacity: 1; transform: translateY(0); }
+        /* SPでは概念文を非表示（タイトルとメタのみ） */
+        @media (max-width: 479px) {
+            .work-card-concept { display: none; }
+        }
 
         .work-card-meta {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            margin-top: 0.8rem;
-            font-size: 0.6rem;
-            letter-spacing: 0.15em;
+            gap: 0.6rem;
+            margin-top: 0.6rem;
+            font-size: 0.55rem;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
             color: rgba(255,255,255,0.35);
             opacity: 0;
             transition: opacity 0.4s 0.1s;
         }
-        .work-card:hover .work-card-meta { opacity: 1; }
+        .work-card:hover .work-card-meta,
+        .work-card.touch-active .work-card-meta { opacity: 1; }
+        @media (max-width: 767px) {
+            .work-card-meta { opacity: 0.6; }
+        }
         .work-card-meta::before {
             content: '';
             display: block;
-            width: 1.5rem; height: 1px;
+            width: 1.2rem; height: 1px;
             background: rgba(255,255,255,0.3);
+        }
+
+        /* --- Worksヘッダー SP対応 --- */
+        @media (max-width: 640px) {
+            #works-header {
+                padding: 3rem 1.25rem 2rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .works-filter-btn {
+                padding: 0.9rem 1rem;
+                font-size: 0.55rem;
+            }
         }
     </style>
 </head>
@@ -324,7 +406,7 @@
     <section id="works-section">
 
         <!-- ヘッダー -->
-        <div class="px-8 py-16 max-w-7xl mx-auto flex items-end justify-between">
+        <div id="works-header" class="px-8 py-16 max-w-7xl mx-auto flex items-end justify-between">
             <div>
                 <p class="text-[10px] tracking-[0.4em] uppercase text-zinc-500 mb-4">Selected Works</p>
                 <h2 class="text-5xl md:text-7xl font-black leading-none tracking-tight">WORKS</h2>
@@ -335,7 +417,7 @@
         </div>
 
         <!-- フィルター -->
-        <div class="flex overflow-x-auto px-8 mb-1" style="border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div class="works-filter-bar">
             <button class="works-filter-btn active" data-filter="all">All</button>
             <button class="works-filter-btn" data-filter="installation">Installation</button>
             <button class="works-filter-btn" data-filter="interactive">Interactive</button>
@@ -357,12 +439,12 @@
             </div>
             <div class="text-right">
                 <p class="text-xl mb-4">Let's build something vivid.</p>
-                <a href="mailto:hello@vivid.inc" class="text-sm underline underline-offset-8 decoration-zinc-700 hover:decoration-white transition">hello@vivid.inc</a>
+                <a href="/cdn-cgi/l/email-protection#f69e939a9a99b6809f809f92d89f9895" class="text-sm underline underline-offset-8 decoration-zinc-700 hover:decoration-white transition"><span class="__cf_email__" data-cfemail="f39b969f9f9cb3859a859a97dd9a9d90">[email&#160;protected]</span></a>
             </div>
         </div>
     </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         const cursor = document.getElementById('cursor');
         let hue = 0;
         let mouseX = -1000;
@@ -634,6 +716,13 @@
             ctx.putImageData(img, 0, 0);
         }
 
+        /* --- タッチデバイス: カーソル非表示 --- */
+        if ('ontouchstart' in window) {
+            document.body.style.cursor = 'auto';
+            const cur = document.getElementById('cursor');
+            if (cur) cur.style.display = 'none';
+        }
+
         /* --- Build grid --- */
         const grid = document.getElementById('worksGrid');
 
@@ -654,6 +743,14 @@
                 </div>
             `;
             grid.appendChild(card);
+
+            /* タッチ操作: tap でオーバーレイ表示 */
+            card.addEventListener('touchstart', () => {
+                document.querySelectorAll('.work-card.touch-active').forEach(c => {
+                    if (c !== card) c.classList.remove('touch-active');
+                });
+                card.classList.toggle('touch-active');
+            }, { passive: true });
 
             const canvas = document.getElementById(`wc-${idx}`);
             let pts = null;
@@ -692,13 +789,4 @@
         const observer = new IntersectionObserver(entries => {
             entries.forEach((e, i) => {
                 if (e.isIntersecting) {
-                    setTimeout(() => e.target.classList.add('visible'), i * 80);
-                    observer.unobserve(e.target);
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.work-card').forEach(c => observer.observe(c));
-    </script>
-
-</body>
-</html>
+                    setTimeout(() => e.target.classList.add('visible'), i *
