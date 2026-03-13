@@ -113,6 +113,152 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+
+        /* ============================================
+           WORKS SECTION — 追加スタイル
+           (既存のスタイルには一切触れていません)
+        ============================================ */
+        #works-section {
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .works-filter-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.35);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: 0.5rem 1.2rem;
+            cursor: none;
+            transition: all 0.25s;
+            white-space: nowrap;
+            margin-right: -1px;
+        }
+        .works-filter-btn:hover,
+        .works-filter-btn.active {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border-color: rgba(255,255,255,0.3);
+            z-index: 1;
+            position: relative;
+        }
+
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1px;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .work-card {
+            background: #050505;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .work-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .work-card:nth-child(1) { grid-column: span 7; aspect-ratio: 16/9; }
+        .work-card:nth-child(2) { grid-column: span 5; aspect-ratio: 4/3; }
+        .work-card:nth-child(3) { grid-column: span 4; aspect-ratio: 1/1; }
+        .work-card:nth-child(4) { grid-column: span 4; aspect-ratio: 1/1; }
+        .work-card:nth-child(5) { grid-column: span 4; aspect-ratio: 1/1; }
+        .work-card:nth-child(6) { grid-column: span 5; aspect-ratio: 4/3; }
+        .work-card:nth-child(7) { grid-column: span 7; aspect-ratio: 16/9; }
+
+        .work-card canvas {
+            width: 100%; height: 100%;
+            display: block;
+            transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
+        }
+        .work-card:hover canvas {
+            transform: scale(1.04);
+        }
+
+        .work-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.15) 55%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2rem;
+        }
+        .work-card:hover .work-card-overlay { opacity: 1; }
+
+        .work-card-index {
+            position: absolute;
+            top: 1.2rem; left: 1.5rem;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            opacity: 0.3;
+            color: #fff;
+        }
+        .work-card-tag {
+            position: absolute;
+            top: 1.2rem; right: 1.5rem;
+            font-size: 0.55rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 0.3rem 0.7rem;
+            color: rgba(255,255,255,0.6);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .work-card:hover .work-card-tag { opacity: 1; }
+
+        .work-card-title {
+            font-size: clamp(1.6rem, 3vw, 2.6rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            transform: translateY(10px);
+            transition: transform 0.4s ease;
+        }
+        .work-card:hover .work-card-title { transform: translateY(0); }
+
+        .work-card-concept {
+            font-size: 0.72rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: rgba(255,255,255,0.55);
+            margin-top: 0.6rem;
+            max-width: 44ch;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.4s 0.05s, transform 0.4s 0.05s;
+        }
+        .work-card:hover .work-card-concept { opacity: 1; transform: translateY(0); }
+
+        .work-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            opacity: 0;
+            transition: opacity 0.4s 0.1s;
+        }
+        .work-card:hover .work-card-meta { opacity: 1; }
+        .work-card-meta::before {
+            content: '';
+            display: block;
+            width: 1.5rem; height: 1px;
+            background: rgba(255,255,255,0.3);
+        }
     </style>
 </head>
 <body>
@@ -171,6 +317,37 @@
             </div>
         </div>
     </section>
+
+    <!-- ============================================
+         WORKS SECTION — ここから追加
+    ============================================ -->
+    <section id="works-section">
+
+        <!-- ヘッダー -->
+        <div class="px-8 py-16 max-w-7xl mx-auto flex items-end justify-between">
+            <div>
+                <p class="text-[10px] tracking-[0.4em] uppercase text-zinc-500 mb-4">Selected Works</p>
+                <h2 class="text-5xl md:text-7xl font-black leading-none tracking-tight">WORKS</h2>
+            </div>
+            <p class="text-zinc-600 text-xs tracking-widest uppercase text-right hidden md:block">
+                Digital Installation<br>Interactive Art<br>Experience Design
+            </p>
+        </div>
+
+        <!-- フィルター -->
+        <div class="flex overflow-x-auto px-8 mb-1" style="border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06);">
+            <button class="works-filter-btn active" data-filter="all">All</button>
+            <button class="works-filter-btn" data-filter="installation">Installation</button>
+            <button class="works-filter-btn" data-filter="interactive">Interactive</button>
+            <button class="works-filter-btn" data-filter="spatial">Spatial</button>
+            <button class="works-filter-btn" data-filter="generative">Generative</button>
+        </div>
+
+        <!-- グリッド -->
+        <div class="works-grid" id="worksGrid"></div>
+
+    </section>
+    <!-- WORKS SECTION — ここまで -->
 
     <footer class="py-20 px-8 border-t border-white/10">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-12">
@@ -273,22 +450,15 @@
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     const repelRadius = 350; 
-                    const touchRadius = orb.circleRadius + 50; // 接触（接近）とみなす半径
+                    const touchRadius = orb.circleRadius + 50;
 
-                    // --- カラフル発光 & 接触ロジック ---
                     if (distance < touchRadius) {
                         orb.isGlowing = true;
                         const intensity = (touchRadius - distance) / touchRadius;
-                        
-                        // ポインターの色相 (hue) を利用して発光
                         const orbHue = hue; 
                         orb.targetAlpha = 0.3 + (intensity * 0.5);
-                        
-                        // 境界線をカラフルに発光
                         orb.render.strokeStyle = `hsla(${orbHue}, 100%, 80%, ${orb.targetAlpha + 0.2})`;
                         orb.render.lineWidth = 2 + (intensity * 4);
-                        
-                        // 塗りつぶしもカラフルに
                         orb.render.fillStyle = `hsla(${orbHue}, 80%, 60%, ${orb.targetAlpha})`;
                     } else {
                         orb.isGlowing = false;
@@ -298,10 +468,8 @@
                         orb.render.fillStyle = `rgba(255, 255, 255, ${orb.currentAlpha})`;
                     }
 
-                    // アルファ値の補間
                     orb.currentAlpha += (orb.targetAlpha - orb.currentAlpha) * 0.1;
 
-                    // --- 回避（斥力） ---
                     if (distance < repelRadius) {
                         const forceFactor = (repelRadius - distance) / repelRadius;
                         const forceMagnitude = forceFactor * 0.0008 * orb.mass;
@@ -311,7 +479,6 @@
                         });
                     }
 
-                    // 微弱な浮遊
                     Matter.Body.applyForce(orb, orb.position, {
                         x: (Math.random() - 0.5) * 0.00008 * orb.mass,
                         y: (Math.random() - 0.5) * 0.00008 * orb.mass
@@ -339,5 +506,199 @@
             });
         };
     </script>
+
+    <!-- ============================================
+         WORKS JS — 追加スクリプト
+    ============================================ -->
+    <script>
+        const worksData = [
+            {
+                id: '01', title: 'VOID', year: '2024', location: 'Tokyo',
+                tag: 'Installation', filter: 'installation',
+                concept: '空白の中に意味を見出す。光と闇の境界が溶け出し、観客は空間そのものの一部となる。存在と不在の狭間に漂う感覚的体験。',
+                palette: ['#08091a', '#1a1a5e', '#3333aa', '#5555ff', '#9999ff'], type: 'wave'
+            },
+            {
+                id: '02', title: 'PULSE', year: '2024', location: 'Berlin',
+                tag: 'Interactive', filter: 'interactive',
+                concept: '都市の鼓動を可視化する。センサーが収集したリアルタイムデータが音と光に変換され、生きている都市の呼吸を感じさせる。',
+                palette: ['#1a0800', '#4d1500', '#bb3300', '#ff5500', '#ffaa55'], type: 'pulse'
+            },
+            {
+                id: '03', title: 'ECHO', year: '2023', location: 'Kyoto',
+                tag: 'Spatial', filter: 'spatial',
+                concept: '記憶の残像が空間に漂う。過去と現在が交差し、時間の層が重なり合う。',
+                palette: ['#080f08', '#0d330d', '#1a661a', '#33aa33', '#77dd77'], type: 'grid'
+            },
+            {
+                id: '04', title: 'FLUX', year: '2023', location: 'Seoul',
+                tag: 'Generative', filter: 'generative',
+                concept: '秩序と混沌の間で揺れ動く粒子。アルゴリズムが生成する予測不可能な美しさ。',
+                palette: ['#15001a', '#3d0050', '#7700aa', '#bb00ee', '#ee66ff'], type: 'particles'
+            },
+            {
+                id: '05', title: 'STILL', year: '2022', location: 'Osaka',
+                tag: 'Installation', filter: 'installation',
+                concept: '動きの中の静寂。ノイズに満ちた現代において、停止することの意味を問いかける瞑想的空間。',
+                palette: ['#0a0a0a', '#1a1a1a', '#2e2e2e', '#555555', '#999999'], type: 'noise'
+            },
+            {
+                id: '06', title: 'DRIFT', year: '2022', location: 'Singapore',
+                tag: 'Interactive', filter: 'interactive',
+                concept: '漂うデータの断片が物語を形成する。訪れるたびに異なる表情を見せる、生きたインスタレーション。',
+                palette: ['#001515', '#003535', '#006666', '#00aaaa', '#55eeee'], type: 'wave'
+            },
+            {
+                id: '07', title: 'ORIGIN', year: '2021', location: 'Tokyo',
+                tag: 'Spatial', filter: 'spatial',
+                concept: 'すべての始まりへ。デジタルと物質の境界が崩れる瞬間を体験する、VIVID.の原点となる作品。',
+                palette: ['#151000', '#3d2e00', '#886600', '#ccaa00', '#ffdd44'], type: 'particles'
+            }
+        ];
+
+        /* --- Canvas renderers --- */
+        function drawWave(canvas, palette) {
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height, t = Date.now() * 0.001;
+            ctx.fillStyle = palette[0]; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath(); ctx.moveTo(0, H / 2);
+                for (let x = 0; x <= W; x += 4) {
+                    const y = H/2
+                        + Math.sin(x * 0.01 + t + i * 0.9) * H * 0.13 * (1 - i * 0.12)
+                        + Math.sin(x * 0.025 - t * 1.3 + i) * H * 0.06;
+                    ctx.lineTo(x, y);
+                }
+                ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+                ctx.fillStyle = palette[i + 1] + '55'; ctx.fill();
+            }
+        }
+
+        function drawPulse(canvas, palette) {
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height, t = Date.now() * 0.002;
+            ctx.fillStyle = palette[0]; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 8; i++) {
+                const r = (Math.sin(t - i * 0.4) * 0.5 + 0.5) * Math.min(W, H) * 0.4 * (1 - i * 0.07);
+                ctx.beginPath(); ctx.arc(W/2, H/2, r, 0, Math.PI * 2);
+                const a = (1 - i / 8) * 0.6;
+                ctx.strokeStyle = palette[Math.min(i+1, palette.length-1)] + Math.floor(a*255).toString(16).padStart(2,'0');
+                ctx.lineWidth = 2; ctx.stroke();
+            }
+        }
+
+        function drawGrid(canvas, palette) {
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height, t = Date.now() * 0.0008;
+            ctx.fillStyle = palette[0]; ctx.fillRect(0, 0, W, H);
+            const cols = 14, rows = 10, cw = W/cols, ch = H/rows;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const v = Math.sin(c * 0.5 + t) * Math.cos(r * 0.5 - t * 0.7);
+                    if (v > 0.15) {
+                        const ci = Math.min(Math.floor((v+1)/2*(palette.length-1)), palette.length-1);
+                        ctx.fillStyle = palette[ci] + 'aa';
+                        ctx.fillRect(c*cw+3, r*ch+3, cw-6, ch-6);
+                    }
+                }
+            }
+        }
+
+        function drawParticles(canvas, palette, pts) {
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+            ctx.fillStyle = palette[0] + '18'; ctx.fillRect(0, 0, W, H);
+            pts.forEach(p => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.004;
+                if (p.x < 0 || p.x > W) p.vx *= -1;
+                if (p.y < 0 || p.y > H) p.vy *= -1;
+                if (p.life < 0) p.life = 1;
+                const ci = Math.min(Math.floor(p.life*(palette.length-1)), palette.length-1);
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = palette[ci] + Math.floor(p.life*180).toString(16).padStart(2,'0');
+                ctx.fill();
+            });
+        }
+
+        function drawNoise(canvas, palette) {
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height, t = Date.now() * 0.0005;
+            const img = ctx.createImageData(W, H);
+            for (let i = 0; i < img.data.length; i += 4) {
+                const x = (i/4) % W, y = Math.floor((i/4)/W);
+                const n = Math.sin(x*0.04+t)*Math.cos(y*0.03-t*0.7)*0.5+0.5;
+                const v = Math.floor(n*80+15);
+                img.data[i] = img.data[i+1] = img.data[i+2] = v;
+                img.data[i+3] = 255;
+            }
+            ctx.putImageData(img, 0, 0);
+        }
+
+        /* --- Build grid --- */
+        const grid = document.getElementById('worksGrid');
+
+        worksData.forEach((w, idx) => {
+            const card = document.createElement('div');
+            card.className = 'work-card';
+            card.dataset.filter = w.filter;
+            card.innerHTML = `
+                <div style="width:100%;height:100%;position:relative;overflow:hidden;">
+                    <canvas id="wc-${idx}" width="800" height="500"></canvas>
+                </div>
+                <span class="work-card-index">${w.id}</span>
+                <span class="work-card-tag">${w.tag}</span>
+                <div class="work-card-overlay">
+                    <h3 class="work-card-title">${w.title}</h3>
+                    <p class="work-card-concept">${w.concept}</p>
+                    <div class="work-card-meta">${w.location} — ${w.year}</div>
+                </div>
+            `;
+            grid.appendChild(card);
+
+            const canvas = document.getElementById(`wc-${idx}`);
+            let pts = null;
+            if (w.type === 'particles') {
+                pts = Array.from({length: 55}, () => ({
+                    x: Math.random()*800, y: Math.random()*500,
+                    vx: (Math.random()-0.5)*1.2, vy: (Math.random()-0.5)*1.2,
+                    r: Math.random()*3+1, life: Math.random()
+                }));
+            }
+            (function loop() {
+                switch (w.type) {
+                    case 'wave':      drawWave(canvas, w.palette); break;
+                    case 'pulse':     drawPulse(canvas, w.palette); break;
+                    case 'grid':      drawGrid(canvas, w.palette); break;
+                    case 'particles': drawParticles(canvas, w.palette, pts); break;
+                    case 'noise':     drawNoise(canvas, w.palette); break;
+                }
+                requestAnimationFrame(loop);
+            })();
+        });
+
+        /* --- Filter --- */
+        document.querySelectorAll('.works-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.works-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const f = btn.dataset.filter;
+                document.querySelectorAll('.work-card').forEach(c => {
+                    c.style.display = (f === 'all' || c.dataset.filter === f) ? '' : 'none';
+                });
+            });
+        });
+
+        /* --- Scroll-triggered fade-in --- */
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach((e, i) => {
+                if (e.isIntersecting) {
+                    setTimeout(() => e.target.classList.add('visible'), i * 80);
+                    observer.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.work-card').forEach(c => observer.observe(c));
+    </script>
+
 </body>
 </html>
