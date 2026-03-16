@@ -366,10 +366,49 @@ body::after {
     background: rgba(255,255,255,0.12);
 }
 
+/* iframe パネル */
+.work-panel-iframe {
+    position: relative;
+    width: 60%;
+    height: 100%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #050505;
+}
+.work-panel-iframe iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+    pointer-events: none;
+}
+.work-panel-iframe .iframe-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    cursor: pointer;
+}
+.work-panel-iframe .iframe-launch {
+    position: absolute;
+    bottom: 1.5rem; right: 1.5rem;
+    font-size: .5rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: .5rem 1rem;
+    background: rgba(5,5,5,.7);
+    z-index: 3;
+    transition: all .3s;
+    text-decoration: none;
+}
+.work-panel-iframe .iframe-launch:hover { color: #fff; border-color: rgba(255,255,255,.5); }
+
 /* SP */
 @media (max-width: 767px) {
     .work-panel { flex-direction: column; height: auto; }
     .work-panel-canvas { width: 100%; height: 56vw; }
+    .work-panel-iframe { width: 100%; height: 56vw; }
     .work-panel-info { width: 100%; border-left: none; border-top: 1px solid rgba(255,255,255,0.05); padding: 2rem 1.5rem; }
     .work-panel-num { font-size: 5rem; top: 1.5rem; left: 1.5rem; }
     .work-panel-line { display: none; }
@@ -492,13 +531,13 @@ body::after {
         </div>
         <div class="text-right">
             <p class="text-xl mb-4">Let's build something vivid.</p>
-            <a href="mailto:hello@vivid.inc" class="text-sm underline underline-offset-8 decoration-zinc-700 hover:decoration-white transition">hello@vivid.inc</a>
+            <a href="/cdn-cgi/l/email-protection#95fdf0f9f9fad5e3fce3fcf1bbfcfbf6" class="text-sm underline underline-offset-8 decoration-zinc-700 hover:decoration-white transition"><span class="__cf_email__" data-cfemail="5c34393030331c2a352a35387235323f">[email&#160;protected]</span></a>
         </div>
     </div>
 </footer>
 
 <!-- 既存 JS -->
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 var cursor = document.getElementById('cursor');
 var hue = 0;
 var mouseX = -1000, mouseY = -1000;
@@ -832,6 +871,45 @@ window.onload = function() {
         });
     }, { threshold: 0.15 });
     document.querySelectorAll('.work-panel').forEach(function(p) { panelObs.observe(p); });
+
+    // iframe works
+    var iframeWorks = [
+        {id:'08', title:'ULTRAMILD', year:'2024', location:'Web', tag:'Interactive',
+         concept:'インタラクションが形を変える。触れるたびに異なる反応を見せる、超軽量なデジタルアートの実験。',
+         url:'https://nippon-jp.github.io/art/'},
+        {id:'09', title:'MANDALA',   year:'2024', location:'Web', tag:'Generative',
+         concept:'マンダラとサイケデリクスの融合。アルゴリズムが生み出す無限の対称性が、デジタルの瞑想空間を作り出す。',
+         url:'https://nippon-jp.github.io/art2/'}
+    ];
+
+    iframeWorks.forEach(function(w) {
+        var panel = document.createElement('div');
+        panel.className = 'work-panel';
+
+        var iframeWrap = document.createElement('div');
+        iframeWrap.className = 'work-panel-iframe';
+        iframeWrap.innerHTML =
+            '<iframe src="'+w.url+'" loading="lazy" title="'+w.title+'"></iframe>' +
+            '<div class="iframe-overlay"></div>' +
+            '<a class="iframe-launch" href="'+w.url+'" target="_blank" rel="noopener">Open Work \u2197</a>';
+        panel.appendChild(iframeWrap);
+
+        var info = document.createElement('div');
+        info.className = 'work-panel-info';
+        info.innerHTML =
+            '<span class="work-panel-num">'+w.id+'</span>' +
+            '<span class="work-panel-tag">'+w.tag+'</span>' +
+            '<h3 class="work-panel-title">'+w.title+'</h3>' +
+            '<p class="work-panel-concept">'+w.concept+'</p>' +
+            '<div class="work-panel-meta">' +
+                '<div class="work-panel-meta-item"><span class="work-panel-meta-label">Location</span><span class="work-panel-meta-val">'+w.location+'</span></div>' +
+                '<div class="work-panel-meta-item"><span class="work-panel-meta-label">Year</span><span class="work-panel-meta-val">'+w.year+'</span></div>' +
+            '</div>' +
+            '<div class="work-panel-line"></div>';
+        panel.appendChild(info);
+        stack.appendChild(panel);
+        panelObs.observe(panel);
+    });
 })();
 </script>
 
